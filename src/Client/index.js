@@ -94,7 +94,7 @@ class Client extends Events {
 	}
 
 	/**
-	 * Loging to account.
+	 * Loging to an account.
 	 * @return {boolean} True if success.
 	 */
 	async login () {
@@ -114,19 +114,26 @@ class Client extends Events {
 	}
 
 	/**
-	 * 
-	 * @param {*} value 
+	 * Checks if `value` is account's id.
+	 * @param {string} value
+	 * @return {boolean}
 	 */
 	isID (value) {
 		return value.length > 16; //temporary way
 	}
 
-	isUsername (value) {
+	/**
+	 * Checks if `value` is account's display name.
+	 * @param {string} value
+	 * @return {boolean}
+	 */
+	isDisplayName (value) {
 		return value.length >= 3 && value.length <= 16; //temporary way
 	}
 
 	/**
-	 * @return {array} Array of domains using by EpicGames
+	 * Returns array of domains using by EpicGames.
+	 * @return {array}
 	 */
 	async getEpicDomains() {
 
@@ -146,9 +153,8 @@ class Client extends Events {
 	} 
 
 	/**
-	 * Search user by username.
-	 * @param {string} display_name
-	 * @return {*} Array with `id` and `displayName` or false if user has been not found
+	 * @param {string} display_name - user's display name
+	 * @return {*} Array with account's id, display name and extarnalAuths or `false` if user not found.
 	 */
 	async lookup(display_name) {
 
@@ -173,8 +179,8 @@ class Client extends Events {
 
 	/**
 	 * List of friends.
-	 * @param {boolean} include_pending - Do include pending friends
-	 * @return array with friends
+	 * @param {boolean} include_pending - whether including pending friends (invite requests)
+	 * @return {array}
 	 */
 	async getFriends (include_pending) {
 
@@ -224,23 +230,21 @@ class Client extends Events {
 
 	/**
 	 * Block a friend.
-	 * @param {string} id - account's id or name
+	 * @param {string} id - account's id or display name
 	 * @return {boolean}
 	 */
 	async blockFriend (id) {
 
 		try {
-
-			let id = null;
 			
-			if(this.isUsername(username)){
+			if(this.isDisplayName(id)){
 
-				let account = await this.lookup(username);
+				let account = await this.lookup(id);
 				if(account)
 					id = account.id;
 				else return false;
 
-			}else id = username;
+			}
 
 			let { data } = await this.http.sendPost(
 				ENDPOINT.FRIENDS_BLOCKLIST + '/' + this.account.id + '/' + id,
@@ -251,7 +255,6 @@ class Client extends Events {
 
 		}catch(err){
 
-			this.debug.print('Cannot block a friend.');
 			this.debug.print(new Error(err));
 
 		}
@@ -261,23 +264,21 @@ class Client extends Events {
 
 	/**
 	 * Remove a friend.
-	 * @param {string} id - account's id or name
+	 * @param {string} id - account's id or display name
 	 * @return {boolean}
 	 */
-	async removeFriend (username) {
+	async removeFriend (id) {
 
 		try {
-
-			let id = null;
 			
-			if(this.isUsername(username)){
+			if(this.isDisplayName(id)){
 
-				let account = await this.lookup(username);
+				let account = await this.lookup(id);
 				if(account)
 					id = account.id;
 				else return false;
 
-			}else id = username;
+			}
 			
 			let { data } = await this.http.send(
 				'DELETE',
@@ -289,7 +290,6 @@ class Client extends Events {
 
 		}catch(err){
 
-			this.debug.print('Cannot remove a friend.');
 			this.debug.print(new Error(err));
 
 		}
@@ -299,23 +299,21 @@ class Client extends Events {
 
 	/**
 	 * Invite a new friend.
-	 * @param {string} id - account's id or name
-	 * 
+	 * @param {string} id - account's id or display name
+	 * @return {boolean}
 	 */
-	async inviteFriend (username) {
+	async inviteFriend (id) {
 		
 		try {
 			
-			let id = null;
-			
-			if(this.isUsername(username)){
+			if(this.isDisplayName(id)){
 
-				let account = await this.lookup(username);
+				let account = await this.lookup(id);
 				if(account)
 					id = account.id;
 				else return false;
 
-			}else id = username;
+			}
 				
 			let { data } = await this.http.sendPost(
 				ENDPOINT.FRIENDS + '/' + this.account.id + '/' + id,
@@ -326,37 +324,11 @@ class Client extends Events {
 
 		}catch(err){
 
-			this.debug.print('Cannot invite friend.');
 			this.debug.print(new Error(err));
 
 		}
 
 		return false;
-	}
-
-	/**
-	 * List of recent players.
-	 * @return array with recent players
-	 */
-	async getRecentPlayers () {
-
-		try {
-			
-			let { data } = await this.http.sendGet(
-				ENDPOINT.FRIENDS_RECENT_PLAYERS.replace('{{account_id}}', this.account.id),
-				this.account.auth.token_type + ' ' + this.account.auth.access_token
-			);
-
-			return data === '' ? [] : data;
-
-		}catch(err){
-
-			this.debug.print('Cannot get list of recent players.');
-			this.debug.print(new Error(err));
-
-		}
-
-		return [];
 	}
 
 	async getLauncherStatus () {

@@ -4,10 +4,10 @@
   "description": "The javascript client for EpicGames Launcher.",
   "main": "index.js",
   "keywords": [
-		"epicgames",
-		"client",
-		"api"
-	],
+    "epicgames",
+    "client",
+    "api"
+  ],
   "author": {
     "name": "Szymon Lisowiec",
     "url": "https://kysune.me"

@@ -66,7 +66,7 @@ eg.init().then(async (success) => {
 > Returns account's id, display name and extarnalAuths or `false` if user not found.
 * __display_name__ {_string_} - user's display name
 
-## getFriends()
+## getFriends([include_pendin=false])
 > Returns array of your friends.
 * __include_pending__ {_boolean_} - whether including pending friends (invite requests).
 

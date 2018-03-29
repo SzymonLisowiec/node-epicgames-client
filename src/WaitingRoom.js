@@ -44,9 +44,15 @@ class WaitingRoom {
 
 					this.mcp_version = response.headers['x-epicgames-mcpversion'];
 
-					if(body) //TODO: Check `body` response while problems with EpicGames servers.
-						resolve(true);
-					else resolve(false);
+					if(body){
+
+						resolve({
+							ticket_id: body.ticketId,
+							expected_wait: body.expectedWait,
+							retry_time: body.retryTime
+						});
+						
+					}else resolve(false);
 					
 				}
 

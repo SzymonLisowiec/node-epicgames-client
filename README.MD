@@ -37,6 +37,24 @@ eg.init().then(async (success) => {
 });
 ```
 
+# Constructor options
+```javascript
+const EGClient = require('epicgames-client').Client;
+let eg = new EGClient({
+
+	email: '',
+	password: '',
+
+	debug: null, //if you need console/file output with logs. Simple you can use `console.log`
+	use_waiting_room: true, //false to ignore waiting room (epicgames load balancer)
+
+	http: {
+		//settings for lib https://github.com/request/request
+	}
+
+});
+```
+
 # Methods
 
 ## init()

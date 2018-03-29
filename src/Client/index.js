@@ -17,12 +17,15 @@ class Client extends Events {
 			
 			email: null,
 			password: null,
+			debug: null,
+			use_waiting_room: true,
+
 			http: {}
 
 		}, config || {});
 
 		this.debug = new Debug({
-			tool: console.log
+			tool: this.config.debug
 		});
 
 		this.build = '7.6.0-3948288+++Portal+Release-Live'; //Build of Launcher
@@ -46,10 +49,20 @@ class Client extends Events {
 			
 		try {
 
-			let waiting_room = new WaitingRoom(ENDPOINT.WAITING_ROOM, this.http);
+			let wait = false;
+			if(this.config.use_waiting_room){
+				let waiting_room = new WaitingRoom(ENDPOINT.WAITING_ROOM, this.http);
+				wait = await waiting_room.needWait();
+			}
 
-			if(await waiting_room.needWait()){
-				//TODO: Show a time, which you have to wait.
+			if(wait){
+				
+				this.debug.print('Problems with servers, need wait ' + wait.expected_wait + ' seconds.');
+				let sto = setTimeout(_ => {
+					clearTimeout(sto);
+					return this.init();
+				}, wait.expected_wait*1000);
+
 			}else{
 				
 				this.auth = new Auth(this);

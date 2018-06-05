@@ -1,4 +1,4 @@
-const ENDPOINT = require('../../resources/ENDPOINT');
+const ENDPOINT = require('../../resources/Endpoint');
 
 const Auth = require('./Auth');
 

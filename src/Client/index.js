@@ -127,6 +127,21 @@ class Client extends Events {
 	}
 
 	/**
+	 * Logouting
+	 * @return {boolean} True if success.
+	 */
+	async logout () {
+
+		let req = await this.http.send(
+			'DELETE',
+			ENDPOINT.OAUTH_SESSIONS_KILL + '/' + this.account.auth.access_token,
+			this.account.auth.token_type + ' ' + this.account.auth.access_token
+		);
+		
+		return true;
+	}
+
+	/**
 	 * Checks if `value` is account's id.
 	 * @param {string} value
 	 * @return {boolean}

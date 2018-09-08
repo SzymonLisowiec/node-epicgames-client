@@ -6,6 +6,7 @@ module.exports = Object.freeze({
     OAUTH_TOKEN: 'https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token',
     OAUTH_EXCHANGE: 'https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/exchange',
     OAUTH_VERIFY: 'https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/verify',
+    OAUTH_SESSIONS_KILL: 'https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/sessions/kill',
     
     DOMAINS: 'https://account-public-service-prod03.ol.epicgames.com/account/api/epicdomains/ssodomains',
     WAITING_ROOM: 'https://launcherwaitingroom-public-service-prod06.ol.epicgames.com/waitingroom/api/waitingroom',

@@ -1,6 +1,6 @@
 {
   "name": "epicgames-client",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "The javascript client for EpicGames Launcher.",
   "main": "index.js",
   "keywords": [
@@ -9,13 +9,13 @@
     "api"
   ],
   "homepage": "https://github.com/SzymonLisowiec/node-epicgames-client",
-	"bugs": {
-		"url": "https://github.com/SzymonLisowiec/node-epicgames-client/issues"
+  "bugs": {
+    "url": "https://github.com/SzymonLisowiec/node-epicgames-client/issues"
   },
   "repository": {
-		"type": "git",
-		"url": "https://github.com/SzymonLisowiec/node-epicgames-client.git"
-	},
+    "type": "git",
+    "url": "https://github.com/SzymonLisowiec/node-epicgames-client.git"
+  },
   "author": {
     "name": "Szymon Lisowiec",
     "url": "https://kysune.me"

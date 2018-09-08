@@ -63,6 +63,9 @@ let eg = new EGClient({
 ## login()
 > Login to an account.
 
+## logout()
+> Kill account's session on epicgames servers.
+
 ## isID(value)
 > Checks if `value` is account's id.
 * __value__ {_string_}

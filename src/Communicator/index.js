@@ -43,11 +43,7 @@ class Communicator extends EventEmitter {
 			this.stream.on('session:started', _ => {
 
 				this.refreshFriendsList();
-				this.updateStatus({
-					status: {
-						status: 'Duuupa'
-					}
-				});
+				this.updateStatus();
 
 				resolve();
 			});

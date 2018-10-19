@@ -1,6 +1,6 @@
 {
   "name": "epicgames-client",
-  "version": "0.1.5",
+  "version": "1.0.0",
   "description": "The javascript client for EpicGames Launcher.",
   "main": "index.js",
   "keywords": [
@@ -25,6 +25,7 @@
     "node": ">=8.0.0"
   },
   "dependencies": {
-    "request": "^2.85.0"
+    "request": "^2.85.0",
+    "stanza.io": "^9.1.0"
   }
 }

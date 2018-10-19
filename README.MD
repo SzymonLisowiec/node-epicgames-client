@@ -1,9 +1,10 @@
+
 # node-epicgames-client
-The javascript client for EpicGames Launcher.
+Unofficial EpicGames Launcher in javascript.
 
 # Installation
 ```
-npm i epicgames-client
+npm i epicgames-client --save
 ```
 
 # Example
@@ -39,18 +40,20 @@ eg.init().then(async (success) => {
 
 # Constructor options
 ```javascript
-const EGClient = require('epicgames-client').Client;
-let eg = new EGClient({
+const EpicGamesClient = require('epicgames-client').Client;
+let eg = new EpicGamesClient({
 
 	email: '',
 	password: '',
 
-	debug: null, //if you need console/file output with logs. Simple you can use `console.log`
-	use_waiting_room: true, //false to ignore waiting room (epicgames load balancer)
+	debug: null, // if you need console/file output with logs. Simple you can use `console.log`
+	use_waiting_room: true, // false to ignore waiting room (epicgames load balancer)
 
 	http: {
-		//settings for lib https://github.com/request/request
-	}
+		// settings for lib https://github.com/request/request
+	},
+	
+	backward_compatibility: false // Set on true if you want old-style response in methods getFriends() and lookup()
 
 });
 ```
@@ -77,34 +80,96 @@ let eg = new EGClient({
 ## getEpicDomains()
 > Returns array of domains using by EpicGames.
 
-## getLauncherStatus()
-> Returns "DEPRECATED" or "NOT_DEPRECATED"
+## getProfile(id_or_name)
+> Returns account's id, display name and extarnalAuths or `false` if user not found.
+* __id_or_name__ {_string_} - user's display name or id
 
-## getLauncherInfo()
-> Returns object with informations about the current client (build etc.).
+## getProfiles(arr)
+> Returns account's id, display name and extarnalAuths for multiple accounts.
+* __arr__ {_array_} - Array with names or ids (can be mixed)
 
 ## lookup(display_name)
-> Returns account's id, display name and extarnalAuths or `false` if user not found.
+> Returns account's id, display name and extarnalAuths or `false` if user not found. I recommend use `getProfile` method.
 * __display_name__ {_string_} - user's display name
 
-## getFriends([include_pendin=false])
+## getFriends([include_pending=false])
 > Returns array of your friends.
-* __include_pending__ {_boolean_} - whether including pending friends (invite requests).
+* __include_pending__ {_boolean_} (optional) - whether including pending friends (invite requests).
 
 ## getFriendsBlocklist()
 > Returns array of your blacklisted friends.
 
-## blockFriend(id)
-> Blocking a friend. Returns `true` of `false` depending on whether the operation was successful.
-* __id__ {_string_} - user's display name or id
+## blockFriend(id_or_name)
+> Blocking a friend. Returns `true` or `false` depending on whether the operation was successful.
+* __id_or_name__ {_string_} - user's display name or id
 
-## removeFriend(id)
-> Removing a friend. Returns `true` of `false` depending on whether the operation was successful.
-* __id__ {_string_} - user's display name or id
+## removeFriend(id_or_name)
+> Removing a friend. Returns `true` or `false` depending on whether the operation was successful.
+* __id_or_name__ {_string_} - user's display name or id
 
-## inviteFriend(id)
-> Sending a friend invite request. Returns `true` of `false` depending on whether the operation was successful.
-* __id__ {_string_} - user's display name or id
+## inviteFriend(id_or_name)
+> Sending a friend invite request. Returns `true` or `false` depending on whether the operation was successful.
+* __id_or_name__ {_string_} - user's display name or id
+
+## getLauncherInfo()
+> Returns object with informations about the current client (build etc.).
+
+## getLauncherStatus()
+> Returns "DEPRECATED" or "NOT_DEPRECATED"
+
+# Communicator
+
+## Example of use
+```javascript
+const EGClient = require('epicgames-client').Client;
+
+let eg = new EGClient({
+    email: 'EMAIL',
+    password: 'PASSWORD'
+});
+
+(async _ => {
+
+	if(!await eg.init() || !await eg.login())
+		throw 'Error while initialize or login process.';
+
+	let communicator = eg.communicator;
+
+	communicator.on('friend:message', async data => {
+		let author = await eg.getProfile(data.account_id);
+		console.log(author.display_name + ': ' + data.message);
+	});
+
+})();
+```
+
+## Methods
+
+### sendMessage(id, message)
+* __id__ {_string_} - user's id
+* __message__ {_string_} - message
+
+### updateStatus([status=null])
+* __status__ {_string_} (optional) - status is displaying under name on friends list.
+
+## Events
+
+### friends
+is emited after login
+### friend:added
+is emited while you added new friend and he accepted invitation (and vice versa).
+### friend:removed
+is emited while your friend has been removed from friends list.
+### friend:status
+is emited while your friend updated status.
+### friend:request
+is emited while someone invited you to friends.
+### friend:message
+is emited while your friend sent you a message.
+### friend:party:invitation
+is emited while your friend invite you to party.
+### friend:party:join-request
+is emited while your friend wants join to your party.
 
 # License
 MIT License

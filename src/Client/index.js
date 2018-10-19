@@ -1,12 +1,12 @@
 const ENDPOINT = require('../../resources/Endpoint');
 
 const Events = require('events');
-const request = require('request');
 const Http = require('../Http');
 const WaitingRoom = require('../WaitingRoom');
 const Account = require('../Account');
 const Auth = require('./Auth');
 const Debug = require('../Debug');
+const Communicator = require('../Communicator');
 
 class Client extends Events {
 
@@ -20,7 +20,9 @@ class Client extends Events {
 			debug: null,
 			use_waiting_room: true,
 
-			http: {}
+			http: {},
+
+			backward_compatibility: false
 
 		}, config || {});
 
@@ -28,7 +30,7 @@ class Client extends Events {
 			tool: this.config.debug
 		});
 
-		this.build = '7.6.0-3948288+++Portal+Release-Live'; //Build of Launcher
+		this.build = '7.16.1-4422705+++Portal+Release-Live-Windows'; //Build of Launcher
 		this.ue_build = '4.18.0-3948288+++Portal+Release-Live'; //Build of Unreal Engine
 
 		this.http = new Http(this);
@@ -37,6 +39,7 @@ class Client extends Events {
 		this.label_name = null;
 
 		this.account = null;
+		this.communicator = null;
 
 		this.auth = null;
 		
@@ -73,8 +76,7 @@ class Client extends Events {
 					this.debug.print('Successfully the client authentication.');
 					this.debug.print('Client ID: ' + this.auth.client_id);
 
-					let launcher_status = await this.getLauncherStatus();
-					this.debug.print('Client status: ' + launcher_status);
+					await this.getLauncherStatus(); // only for simulate official launcher
 						
 					let launcher_info = await this.getLauncherInfo();
 
@@ -116,6 +118,9 @@ class Client extends Events {
 		let auth = await this.account.authorize();
 
 		if(auth){
+			
+			this.communicator = new Communicator(this);
+			await this.communicator.connect();
 
 			this.debug.print('Account logged.');
 
@@ -192,8 +197,12 @@ class Client extends Events {
 				ENDPOINT.ACCOUNT_BY_NAME + '/' + display_name,
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
-
-			return data;
+			
+			return this.config.backward_compatibility ? data : {
+				id: data.id,
+				account_name: data.displayName,
+				external_auths: data.externalAuths
+			};
 
 		}catch(err){
 
@@ -203,7 +212,71 @@ class Client extends Events {
 		}
 
 		return false;
-	} 
+	}
+
+	/**
+	 * Get specyfic user profile
+	 * @param {string} id - account's id or display name
+	 * @return {boolean}
+	 */
+	async getProfile (id) {
+
+		let accounts = await this.getProfiles([id]);
+
+		if(accounts.length == 1)
+			return accounts[0];
+
+		return false;
+	}
+
+	/**
+	 * Get users profiles
+	 * @param {string} ids - array of account's id or display name
+	 * @return {boolean}
+	 */
+	async getProfiles (ids) {
+
+		let query_string = '';
+
+		for(let i in ids){
+
+			let id = ids[i];
+			
+			if(this.isDisplayName(id)){
+
+				let account = await this.lookup(id);
+				if(account)
+					id = account.id;
+					
+			}
+
+			query_string += '&accountId=' + id;
+
+		}
+		
+		try {
+			
+			let { data } = await this.http.sendGet(
+				ENDPOINT.ACCOUNT + '?' + query_string.substr(1),
+				this.account.auth.token_type + ' ' + this.account.auth.access_token
+			);
+			
+			return data.map(account => {
+				return {
+					id: account.id,
+					display_name: account.displayName,
+					external_auths: account.externalAuths
+				}
+			});
+
+		}catch(err){
+
+			this.debug.print(new Error(err));
+
+		}
+
+		return false;
+	}
 
 	/**
 	 * List of friends.
@@ -218,8 +291,18 @@ class Client extends Events {
 				ENDPOINT.FRIENDS + '/' + this.account.id + '?includePending=' + (include_pending ? true : false),
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
-
-			return data === '' ? [] : data;
+			
+			if(data === '')
+				return [];
+			else return this.config.backward_compatibility ? data : data.map(account => {
+				return {
+					account_id: account.accountId,
+					status: account.status,
+					direction: account.direction,
+					created: new Date(account.created),
+					favorite: account.favorite
+				};
+			});
 
 		}catch(err){
 
@@ -367,7 +450,7 @@ class Client extends Events {
 				ENDPOINT.LAUNCHER_STATUS + '/' + this.build,
 				this.auth.token_type + ' ' + this.auth.access_token
 			);
-
+			
 			return data.status;
 
 		}catch(err){

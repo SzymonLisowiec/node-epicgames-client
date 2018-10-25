@@ -117,7 +117,7 @@ class Communicator extends EventEmitter {
 			switch (stanza.type) {
 
 				case 'available':
-
+					
 					let payload = {
 						state: stanza.show ? EUserState.Away : EUserState.Online,
 						account_id: stanza.from.local
@@ -191,6 +191,20 @@ class Communicator extends EventEmitter {
 							
 							type: 'com.epicgames.friends.core.apiobjects.Friend',
 							timestamp: '2018-10-19T12:01:42.553Z'
+						}
+						*/
+						break;
+
+					case 'com.epicgames.friends.core.apiobjects.FriendRemoval':
+						/*
+						{
+							payload: {
+								 accountId: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+								 reason: 'DELETED'
+							},
+							
+							type: 'com.epicgames.friends.core.apiobjects.FriendRemoval',
+							timestamp: '2018-10-25T15:43:12.114Z'
 						}
 						*/
 						break;
@@ -274,11 +288,15 @@ class Communicator extends EventEmitter {
 	}
 
 	sendMessage (to, message) {
+
+		to = to + '@prod.ol.epicgames.com';
+
 		this.sendRequest({
-			to,
+			to: new StanzaIO.JID(to),
 			type: 'chat',
 			body: message
 		});
+
 	}
 
 	sendRequest (data) {

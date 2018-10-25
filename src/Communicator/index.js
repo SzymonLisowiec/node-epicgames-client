@@ -274,7 +274,7 @@ class Communicator extends EventEmitter {
 	}
 
 	sendMessage (to, message) {
-		this.stream.sendRequest({
+		this.sendRequest({
 			to,
 			type: 'chat',
 			body: message

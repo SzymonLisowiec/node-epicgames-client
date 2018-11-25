@@ -484,6 +484,15 @@ class Client extends Events {
 		return this.inviteFriend(id);
 	}
 
+	/**
+	 * Declining friend's invitation. Alias for method removeFriend
+	 * @param {string} id - account's id or display name
+	 * @return {boolean}
+	 */
+	async declineFriend (id) {
+		return this.removeFriend(id);
+	}
+
 	async getLauncherStatus () {
 		
 		try {

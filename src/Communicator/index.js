@@ -40,6 +40,10 @@ class Communicator extends EventEmitter {
 			
 			this.stream.connect();
 
+			this.stream.on('disconnected', _ => {
+				this.emit('disconnected');
+			});
+
 			this.stream.on('session:started', _ => {
 
 				this.refreshFriendsList();

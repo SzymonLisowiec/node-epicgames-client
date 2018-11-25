@@ -40,6 +40,14 @@ class Communicator extends EventEmitter {
 			
 			this.stream.connect();
 
+			this.stream.on('raw:incoming', xml => {
+				this.emit('raw:incoming', xml);
+			});
+
+			this.stream.on('raw:outgoing', xml => {
+				this.emit('raw:outgoing', xml);
+			});
+
 			this.stream.on('disconnected', _ => {
 				this.emit('disconnected');
 			});

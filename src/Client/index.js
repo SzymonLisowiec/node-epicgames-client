@@ -480,7 +480,7 @@ class Client extends Events {
 	 * @param {string} id - account's id or display name
 	 * @return {boolean}
 	 */
-	async acceptFriend (id) {
+	async acceptFriendRequest (id) {
 		return this.inviteFriend(id);
 	}
 
@@ -489,7 +489,7 @@ class Client extends Events {
 	 * @param {string} id - account's id or display name
 	 * @return {boolean}
 	 */
-	async declineFriend (id) {
+	async declineFriendRequest (id) {
 		return this.removeFriend(id);
 	}
 

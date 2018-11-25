@@ -442,6 +442,15 @@ class Client extends Events {
 		return false;
 	}
 
+	/**
+	 * Accepting friend's invitation. Alias for method inviteFriend
+	 * @param {string} id - account's id or display name
+	 * @return {boolean}
+	 */
+	async acceptFriend (id) {
+		return this.inviteFriend(id);
+	}
+
 	async getLauncherStatus () {
 		
 		try {

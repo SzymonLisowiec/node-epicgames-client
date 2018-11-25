@@ -49,10 +49,35 @@ class Communicator extends EventEmitter {
 			});
 
 			this.stream.on('disconnected', _ => {
+
 				this.emit('disconnected');
+
+				this.client.debug.print('Communicator: Disconnected');
+				this.client.debug.print('Communicator: Trying reconnect...');
+
+				this.stream.connect();
+
 			});
 
+			this.stream.on('session:end', _ => {
+
+				this.emit('session:ended');
+
+				this.client.debug.print('Communicator: Session ended');
+
+				this.client.debug.print('Communicator: There will be try of restart connection to obtain new session (at the moment I\'m only testing this solution).');
+				this.client.debug.print('Communicator: Trying restart connection to obtain new session...');
+				
+				this.stream.disconnect();
+				this.stream.connect();
+
+			});
+			
 			this.stream.on('session:started', _ => {
+
+				this.emit('session:started');
+
+				this.client.debug.print('Communicator: Session started');
 
 				this.refreshFriendsList();
 				this.updateStatus();

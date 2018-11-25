@@ -67,8 +67,23 @@ class Http {
 
                 }
 
-                if(typeof body === 'object' && typeof body.errorCode != 'undefined')
-                    reject(body.errorCode);
+                if(typeof body === 'object' && typeof body.errorCode != 'undefined'){
+
+					switch(body.errorCode){
+
+						case 'errors.com.epicgames.common.oauth.invalid_token':
+							reject('You aren\'t logged in!');
+							break;
+
+						default:
+							reject(body.errorCode);
+							break;
+
+					}
+
+					return;
+
+				}
 
                 resolve({
                     response,

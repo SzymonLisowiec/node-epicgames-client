@@ -315,6 +315,39 @@ class Client extends Events {
 	}
 
 	/**
+	 * Verifying given account id or display name is our friend.
+	 * @param {string} id - account's id or display name
+	 * @return {boolean}
+	 */
+	async hasFriend (id) {
+
+		try {
+			
+			if(this.isDisplayName(id)){
+
+				let account = await this.lookup(id);
+				if(account)
+					id = account.id;
+				else return false;
+
+			}
+
+			let friends = await this.getFriends();
+			
+			return friends.findIndex(friend => {
+				return friend.account_id == id;
+			}) > -1 ? true : false;
+
+		}catch(err){
+
+			this.debug.print(new Error(err));
+
+		}
+
+		return false;
+	}
+
+	/**
 	 * Blocklist of friends.
 	 * @return {array} Array with blocked friends
 	 */

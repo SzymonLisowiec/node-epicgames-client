@@ -96,6 +96,10 @@ let eg = new EpicGamesClient({
 > Returns array of your friends.
 * __include_pending__ {_boolean_} (optional) - whether including pending friends (invite requests).
 
+## hasFriend(id_or_name)
+> Verifying given account is your friend.
+* __id_or_name__ {_string_} - user's display name or id
+
 ## getFriendsBlocklist()
 > Returns array of your blacklisted friends.
 
@@ -109,6 +113,14 @@ let eg = new EpicGamesClient({
 
 ## inviteFriend(id_or_name)
 > Sending a friend invite request. Returns `true` or `false` depending on whether the operation was successful.
+* __id_or_name__ {_string_} - user's display name or id
+
+## acceptFriendRequest(id_or_name)
+> Accepting friend's invitation. Alias for method inviteFriend
+* __id_or_name__ {_string_} - user's display name or id
+
+## declineFriendRequest(id_or_name)
+> Declining friend's invitation. Alias for method removeFriend
 * __id_or_name__ {_string_} - user's display name or id
 
 ## getLauncherInfo()
@@ -153,6 +165,15 @@ let eg = new EGClient({
 * __status__ {_string_} (optional) - status is displaying under name on friends list.
 
 ## Events
+
+### disconnected
+### session:started
+### session:ended
+
+### raw:incoming
+Using for debugging, is emited while receiving every data.
+### raw:outgoing
+Using for debugging, is emited while sending every data
 
 ### friends
 is emited after login

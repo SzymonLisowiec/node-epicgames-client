@@ -58,6 +58,35 @@ let eg = new EpicGamesClient({
 });
 ```
 
+# Properties
+
+## build
+> Desktop's launcher version
+
+## ue_build
+> Unreal Engine version
+
+## app_name
+> Launcher name
+
+## label_name
+> Launcher's platform
+
+## account
+> Object with informations about logged in account.
+
+- __id__ - account's id
+- __display_name__ - account's nickname
+- __name__ - alias for `display_name`
+- __first_name__
+- __last_name__
+- __email__
+- __age_group__
+- __country__
+- __preferred_language__
+- __last_login__
+- __failed_login_attempts__
+
 # Methods
 
 ## init()
@@ -154,35 +183,6 @@ let eg = new EGClient({
 
 })();
 ```
-
-# Properties
-
-## build
-> Desktop's launcher version
-
-## ue_build
-> Unreal Engine version
-
-## app_name
-> Launcher name
-
-## label_name
-> Launcher's platform
-
-## account
-> Object with informations about logged in account.
-
-- __id__ - account's id
-- __display_name__ - account's nickname
-- __name__ - alias for `display_name`
-- __first_name__
-- __last_name__
-- __email__
-- __age_group__
-- __country__
-- __preferred_language__
-- __last_login__
-- __failed_login_attempts__
 
 ## Methods
 

@@ -22,16 +22,17 @@ class Account {
 				this.auth.token_type + ' ' + this.auth.access_token
 			);
             
-            this.display_name = data.displayName;
-            this.name = data.name;
+			this.display_name = data.displayName;
+			this.name = data.displayName;
+            this.first_name = data.name;
+            this.last_name = data.lastName;
             this.email = data.email;
             this.failed_login_attempts = data.failedLoginAttempts;
             this.last_login = new Date(data.lastLogin);
             this.numberOfDisplayNameChanges = data.numberOfDisplayNameChanges;
-            this.ageGroup = data.ageGroup;
+            this.age_group = data.ageGroup;
             this.headless = data.headless;
             this.country = data.country;
-            this.last_name = data.lastName;
             this.preferred_language = data.preferredLanguage;
 
 			return data;

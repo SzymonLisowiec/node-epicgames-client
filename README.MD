@@ -125,6 +125,9 @@ let eg = new EpicGamesClient({
 > Returns array of your friends.
 * __include_pending__ {_boolean_} (optional) - whether including pending friends (invite requests).
 
+## getPendingFriends()
+> Returns array of your pending friends.
+
 ## hasFriend(id_or_name)
 > Verifying given account is your friend.
 * __id_or_name__ {_string_} - user's display name or id

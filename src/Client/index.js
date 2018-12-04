@@ -313,6 +313,16 @@ class Client extends Events {
 
 		return [];
 	}
+	
+	/**
+	 * List of pending friends.
+	 * @return {array}
+	 */
+	async getPendingFriends () {
+		let friends = await this.getFriends(true);
+
+		return friends ? friends.filter(friend => friend.status === "PENDING") : [];
+	}
 
 	/**
 	 * Verifying given account id or display name is our friend.

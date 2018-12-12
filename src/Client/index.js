@@ -30,7 +30,8 @@ class Client extends Events {
 			tool: this.config.debug
 		});
 
-		this.build = '7.16.1-4422705+++Portal+Release-Live-Windows'; //Build of Launcher
+		this.os = 'Windows/10.0.17134.1.768.64bit';
+		this.build = '8.4.0-4627382+++Portal+Release-Live'; //Build of Launcher
 		this.ue_build = '4.18.0-3948288+++Portal+Release-Live'; //Build of Unreal Engine
 
 		this.http = new Http(this);
@@ -77,23 +78,29 @@ class Client extends Events {
 					this.debug.print('Client ID: ' + this.auth.client_id);
 
 					await this.getLauncherStatus(); // only for simulate official launcher
-						
-					let launcher_info = await this.getLauncherInfo();
+					
+					/**
+					 * LAUNCHER INFO IS PROBABLY DEPRECATED
+					 */
+					// let launcher_info = await this.getLauncherInfo();
 
-					if(launcher_info){
+					// if(launcher_info){
 
-						this.build = launcher_info.buildVersion;
-						this.app_name = launcher_info.appName;
-						this.label_name = launcher_info.labelName;
+					// 	this.build = launcher_info.buildVersion;
+					// 	this.app_name = launcher_info.appName;
+					// 	this.label_name = launcher_info.labelName;
 
-						this.debug.print('Client build version: ' + this.build);
-						this.debug.print('Client app name: ' + this.app_name);
-						this.debug.print('Client label name: ' + this.label_name);
+					// 	this.debug.print('Client build version: ' + this.build);
+					// 	this.debug.print('Client app name: ' + this.app_name);
+					// 	this.debug.print('Client label name: ' + this.label_name);
 
-						this.debug.print('Client ready.');
-						return true;
+					// 	this.debug.print('Client ready.');
+					// 	return true;
 
-					}
+					// }
+
+					this.debug.print('Client ready.');
+					return true;
 
 				}
 
@@ -524,7 +531,7 @@ class Client extends Events {
 		return false;
 	}
 
-	async getLauncherInfo () {
+	async getLauncherInfo () { // PROBABLY DEPRECATED
 
 		try {
 

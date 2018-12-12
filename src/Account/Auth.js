@@ -1,5 +1,7 @@
 const ENDPOINT = require('../../resources/Endpoint');
 
+const Cheerio = require('cheerio');
+
 class AccountAuth {
 
 	constructor (client) {
@@ -13,22 +15,74 @@ class AccountAuth {
 		
 		try {
 
-			let { data } = await this.client.http.sendPost(ENDPOINT.OAUTH_TOKEN, 'launcher', {
-				grant_type: 'password',
-				username: this.client.config.email,
+			/**
+			 * Geting XSRF TOKEN
+			 */
+			let xsrf_token = await this.getXSRF();
+
+			if(!xsrf_token)
+				throw '[Account Authorization] Cannot get XSRF TOKEN!';
+
+
+			/**
+			 * Sending login form
+			 */
+			let { data } = await this.client.http.sendPost(ENDPOINT.LOGIN_FRONTEND + '/login/doLauncherLogin', 'launcher', {
+				fromForm: 'yes',
+				authType: null,
+				linkExtAuth: null,
+				client_id: this.client.auth.client_id,
+				redirectUrl: ENDPOINT.LOGIN_FRONTEND + '/login/showPleaseWait?client_id=' + this.client.auth.client_id + '&rememberEmail=false',
+				epic_username: this.client.config.email,
 				password: this.client.config.password,
-				token_type: 'eg1',
-				includePerms: false // Account's permissions
+				rememberMe: 'NO'
+			}, true, {
+				'X-XSRF-TOKEN': xsrf_token
 			});
 			
-			if(data){
+			if(!data || !data.redirectURL){
 
-				this.setAuthParams(data);
-				this.setTokenTimeout();
+				let $ = Cheerio.load(data);
+				let error_codes_element = $('.errorCodes');
 
-				return true;
-				
+				if(error_codes_element.length > 0){
+
+					let error_msg = error_codes_element.text().trim();
+
+					console.log('Login form error: ' + error_msg);
+					throw '[Account Authorization] Login form error: ' + error_msg;
+				}
+
+				throw '[Account Authorization] Cannot get "please wait" redirection URL!';
 			}
+			
+
+			/**
+			 * Reading exchange code from redirected "please wait" page
+			 */
+			let exchange_code = await this.getExchangeCode(data.redirectURL);
+
+			if(!exchange_code)
+				throw '[Account Authorization] Cannot get exchange code!';
+			
+			
+			/**
+			 * Exchanging code on token "eg1"
+			 */
+			let auth_data = await this.exchangeCode(exchange_code);
+			
+			if(!auth_data)
+				throw '[Account Authorization] Cannot exchange code and receive auth_data!';
+
+			
+			/**
+			 * Ending auth process
+			 */
+
+			this.setAuthParams(auth_data);
+			this.setTokenTimeout();
+
+			return true;
 
 		}catch(err){
 
@@ -37,6 +91,39 @@ class AccountAuth {
 		}
 
 		return false;
+	}
+
+	async getXSRF() {
+		
+		await this.client.http.sendGet(ENDPOINT.LOGIN_FRONTEND + '/login/doLauncherLogin?client_id=' + this.client.auth.client_id + '&redirectUrl=https%3A%2F%2Faccounts.launcher-website-prod07.ol.epicgames.com%2Flogin%2FshowPleaseWait%3Fclient_id%3D' + this.client.auth.client_id + '%26rememberEmail%3Dfalse', 'launcher');
+
+		let xsrf_token_cookie = this.client.http.jar.getCookies(ENDPOINT.LOGIN_FRONTEND + '/login/doLauncherLogin').find(cookie => {
+			return cookie.key == 'XSRF-TOKEN';
+		});
+
+		return xsrf_token_cookie.value;
+	}
+
+	async getExchangeCode (url) {
+		
+		let { response: { body } } = await this.client.http.sendGet(url, 'launcher', {}, false);
+		
+		let regex = /com\.epicgames\.account\.web\.widgets\.loginWithExchangeCode\(\'(.*)\'(.*?)\)/g;
+		let matches = regex.exec(body);
+
+		return matches[1] || false;
+	}
+
+	async exchangeCode (exchange_code) {
+
+		let { data } = await this.client.http.sendPost(ENDPOINT.OAUTH_TOKEN, 'launcher', {
+			grant_type: 'exchange_code',
+			exchange_code,
+			token_type: 'eg1',
+			includePerms: false // Account's permissions
+		});
+		
+		return data || false;
 	}
 
 	async exchange () {

@@ -22,7 +22,7 @@ class Http {
     }
 
     getUserAgent () {
-		return 'game=UELauncher, engine=UE4, build=' + this.launcher.build;
+		return 'EpicGamesLauncher/' + this.launcher.build + ' ' + this.launcher.os;
 	}
 
     setHeader (name, value) {

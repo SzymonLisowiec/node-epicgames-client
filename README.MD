@@ -26,7 +26,7 @@ eg.init().then(async (success) => {
 			
 			if(account){
 			
-				console.log(account.displayName + '\'s id: ' + account.id);
+				console.log(account.account_name + '\'s id: ' + account.id);
 				//It will return "Kysune's id: 9a1d43b1d826420e9fa393a79b74b2ff"
 				
 			}
@@ -155,7 +155,7 @@ let eg = new EpicGamesClient({
 > Declining friend's invitation. Alias for method removeFriend
 * __id_or_name__ {_string_} - user's display name or id
 
-## getLauncherInfo()
+## ~~getLauncherInfo()~~ DEPRECATED
 > Returns object with informations about the current client (build etc.).
 
 ## getLauncherStatus()

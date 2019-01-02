@@ -41,7 +41,6 @@ class Communicator extends EventEmitter {
 	
 			this.stream.on('raw:incoming', xml => {
 				this.emit('raw:incoming', xml);
-				console.dir(xml);
 			});
 	
 			this.stream.on('raw:outgoing', xml => {

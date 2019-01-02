@@ -30,7 +30,9 @@ class Communicator extends EventEmitter {
 	
 			});
 	
-			this.stream.enableKeepAlive();
+			this.stream.enableKeepAlive({
+				interval: 60
+			});
 			
 			this.listenFriendsList();
 			this.listenFriendActions();
@@ -39,6 +41,7 @@ class Communicator extends EventEmitter {
 	
 			this.stream.on('raw:incoming', xml => {
 				this.emit('raw:incoming', xml);
+				console.dir(xml);
 			});
 	
 			this.stream.on('raw:outgoing', xml => {

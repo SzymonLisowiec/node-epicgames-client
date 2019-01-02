@@ -168,6 +168,15 @@ class AccountAuth {
 				this.setTokenTimeout();
 
 				this.client.debug.print('Account\'s token refreshed.');
+				
+				if(this.client.communicator){
+		
+					await this.client.communicator.disconnect();
+					await this.client.communicator.connect();
+					
+					this.client.debug.print('Communicator: Reconnected with new account\'s access token.');
+		
+				}
 
 				return true;
 		

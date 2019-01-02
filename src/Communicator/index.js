@@ -9,57 +9,63 @@ class Communicator extends EventEmitter {
 		super(client);
 
 		this.client = client;
-		
-		this.stream = new StanzaIO.createClient({
-
-			wsURL: 'wss://xmpp-service-prod.ol.epicgames.com',
-			transport: 'websocket',
-			server: 'prod.ol.epicgames.com',
-
-			credentials: {
-				host: 'prod.ol.epicgames.com',
-				username: this.client.account.id,
-				password: this.client.account.auth.access_token
-			}
-
-		});
-
-		// this.stream.on('raw:incoming', stanza => {
-		// 	console.dir(stanza);
-		// });
-		
-		this.listenFriendsList();
-		this.listenFriendActions();
-		this.listenFriendStates();
-		this.listenMessages();
 
 	}
 
 	connect () {
 		return new Promise((resolve, reject) => {
-			
-			this.stream.connect();
 
+			this.stream = new StanzaIO.createClient({
+
+				wsURL: 'wss://xmpp-service-prod.ol.epicgames.com',
+				transport: 'websocket',
+				server: 'prod.ol.epicgames.com',
+	
+				credentials: {
+					jid: this.client.account.id + '@prod.ol.epicgames.com',
+					host: 'prod.ol.epicgames.com',
+					username: this.client.account.id,
+					password: this.client.account.auth.access_token
+				}
+	
+			});
+	
+			this.stream.enableKeepAlive();
+			
+			this.listenFriendsList();
+			this.listenFriendActions();
+			this.listenFriendStates();
+			this.listenMessages();
+	
 			this.stream.on('raw:incoming', xml => {
 				this.emit('raw:incoming', xml);
 			});
-
+	
 			this.stream.on('raw:outgoing', xml => {
 				this.emit('raw:outgoing', xml);
 			});
 
-			this.stream.on('disconnected', _ => {
+			this.stream.once('connected', async _ => {
+
+				this.emit('connected');
+
+				this.client.debug.print('Communicator: Connected');
+
+			});
+
+			this.stream.once('disconnected', async _ => {
 
 				this.emit('disconnected');
 
 				this.client.debug.print('Communicator: Disconnected');
 				this.client.debug.print('Communicator: Trying reconnect...');
 
+				await this.disconnect(true);
 				this.stream.connect();
 
 			});
 
-			this.stream.on('session:end', _ => {
+			this.stream.once('session:end', async _ => {
 
 				this.emit('session:ended');
 
@@ -68,12 +74,12 @@ class Communicator extends EventEmitter {
 				this.client.debug.print('Communicator: There will be try of restart connection to obtain new session (at the moment I\'m only testing this solution).');
 				this.client.debug.print('Communicator: Trying restart connection to obtain new session...');
 				
-				this.stream.disconnect();
+				await this.disconnect();
 				this.stream.connect();
 
 			});
 			
-			this.stream.on('session:started', _ => {
+			this.stream.once('session:started', _ => {
 
 				this.emit('session:started');
 
@@ -84,6 +90,34 @@ class Communicator extends EventEmitter {
 
 				resolve();
 			});
+			
+			this.stream.connect();
+
+		});
+	}
+
+	disconnect (already_disconected) {
+		return new Promise((resolve, reject) => {
+			
+			this.stream.off('disconnected');
+			this.stream.off('session:end');
+			this.stream.off('session:started');
+
+			if(typeof already_disconected != 'undefined' && already_disconected){
+				resolve();
+				return;
+			}
+
+			this.stream.disconnect();
+
+			this.stream.once('disconnected', _ => {
+
+				this.client.debug.print('Communicator: Disconnected');
+				
+				resolve();
+
+			});
+
 
 		});
 	}

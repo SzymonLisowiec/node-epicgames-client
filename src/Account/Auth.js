@@ -167,6 +167,8 @@ class AccountAuth {
 				this.setAuthParams(data);
 				this.setTokenTimeout();
 
+				this.client.emit('access_token_refreshed');
+
 				this.client.debug.print('Account\'s token refreshed.');
 				
 				if(this.client.communicator){

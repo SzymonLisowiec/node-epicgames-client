@@ -22,7 +22,9 @@ class Client extends Events {
 
 			http: {},
 
-			backward_compatibility: false
+			backward_compatibility: false,
+
+			language: 'en-EN'
 
 		}, config || {});
 
@@ -35,6 +37,7 @@ class Client extends Events {
 		this.ue_build = '4.18.0-3948288+++Portal+Release-Live'; //Build of Unreal Engine
 
 		this.http = new Http(this);
+        this.http.setHeader('Accept-Language', this.config.language);
 
 		this.app_name = null;
 		this.label_name = null;
@@ -44,6 +47,13 @@ class Client extends Events {
 
 		this.auth = null;
 		
+	}
+
+	/**
+	 * Sets client language
+	 */
+	setLanguage (iso_language) {
+		this.http.setHeader('Accept-Language', iso_language);
 	}
 
 	/**

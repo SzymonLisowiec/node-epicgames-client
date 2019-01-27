@@ -605,7 +605,7 @@ class Client extends Events {
 		return false;
 	}
 
-	async runGame (game) {
+	async runGame (game, options) {
 		
 		try {
 			
@@ -631,7 +631,7 @@ class Client extends Events {
 			if(eula !== true)
 				throw new Error('Cannot accept EULA for game ' + game.Namespace + '!');
 
-			let game_client = new game.Client(this);
+			let game_client = new game.Client(this, options);
 
 			if(!await game_client.init())
 				throw new Error('Cannot initialize game ' + game.Namespace + '!');

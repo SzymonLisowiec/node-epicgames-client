@@ -20,6 +20,8 @@ class User {
 		this.display_name = data.account_name || data.display_name || null;
 		this.account_name = this.display_name; // backward compatibility
 
+		this.external_auths = this.external_auths || [];
+
 	}
 
 	static async get (client, user) {

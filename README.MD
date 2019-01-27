@@ -7,6 +7,9 @@ Unofficial EpicGames Launcher in javascript.
 npm i epicgames-client --save
 ```
 
+# Do you need help?
+Check our discord server: https://discord.gg/HxGfuEx
+
 # Example
 ```javascript
 const EGClient = require('epicgames-client').Client;

@@ -1,4 +1,6 @@
 module.exports = Object.freeze({
+
+	EULA_TRACKING: 'https://eulatracking-public-service-prod06.ol.epicgames.com/eulatracking/api/public/agreements/{{namespace}}',
     
     LAUNCHER_STATUS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/info/launcher',
 	LAUNCHER_INFO: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/Windows/x/EpicGamesLauncher',

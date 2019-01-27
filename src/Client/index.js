@@ -562,6 +562,91 @@ class Client extends Events {
 		return false;
 	}
 
+	async checkEULA (namespace) {
+		
+		try {
+			
+			let { data } = await this.http.sendGet(
+				ENDPOINT.EULA_TRACKING.replace('{{namespace}}', namespace) + '/account/' + this.account.id + '?locale=' + this.http.getHeader('Accept-Language'),
+				this.account.auth.token_type + ' ' + this.account.auth.access_token
+			);
+			
+			return !data ? true : data;
+
+		}catch(err){
+
+			this.debug.print('Cannot get EULA for namespace ' + namespace);
+			this.debug.print(new Error(err));
+
+		}
+
+		return false;
+	}
+
+	async acceptEULA (eula) {
+		
+		try {
+			
+			let { response } = await this.http.sendPost(
+				ENDPOINT.EULA_TRACKING.replace('{{namespace}}', namespace) + '/version/' + version + '/account/' + this.account.id + '/accept?locale=' + locale,
+				this.account.auth.token_type + ' ' + this.account.auth.access_token
+			);
+			
+			return response.statusCode === 204;
+
+		}catch(err){
+
+			this.debug.print('Cannot accept EULA v' + version + ' for namespace ' + namespace);
+			this.debug.print(new Error(err));
+
+		}
+
+		return false;
+	}
+
+	async runGame (game) {
+		
+		try {
+			
+			this.debug.print('Running game ' + game.Namespace);
+
+			let eula = await this.checkEULA(game.Namespace);
+			
+			if(eula !== true){
+
+				if(eula === false){
+					
+					throw new Error('Cannot get informations about EULA for game ' + game.Namespace + '!');
+
+				}else{
+
+					await this.acceptEULA(eula);
+					eula = await this.checkEULA(eula);
+
+				}
+
+			}
+
+			if(eula !== true)
+				throw new Error('Cannot accept EULA for game ' + game.Namespace + '!');
+
+			let game_client = new game.Client(this);
+
+			if(!await game_client.init())
+				throw new Error('Cannot initialize game ' + game.Namespace + '!');
+
+			return game_client;
+
+		}catch(err){
+
+			this.debug.print('Cannot run game.');
+			this.debug.print(new Error(err));
+
+		}
+
+		return false;
+	}
+
 }
 
 module.exports = Client;

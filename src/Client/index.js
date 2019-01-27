@@ -7,6 +7,7 @@ const Account = require('../Account');
 const Auth = require('./Auth');
 const Debug = require('../Debug');
 const Communicator = require('../Communicator');
+const User = require('../User');
 
 class Client extends Events {
 
@@ -350,19 +351,15 @@ class Client extends Events {
 
 		try {
 			
-			if(this.isDisplayName(id)){
+			let user = await User.get(this, id);
 
-				let account = await this.lookup(id);
-				if(account)
-					id = account.id;
-				else return false;
-
-			}
+			if(!user)
+				return false;
 
 			let friends = await this.getFriends();
 			
 			return friends.findIndex(friend => {
-				return friend.account_id == id;
+				return friend.account_id == user.id;
 			}) > -1 ? true : false;
 
 		}catch(err){
@@ -408,17 +405,13 @@ class Client extends Events {
 
 		try {
 			
-			if(this.isDisplayName(id)){
+			let user = await User.get(this, id);
 
-				let account = await this.lookup(id);
-				if(account)
-					id = account.id;
-				else return false;
-
-			}
+			if(!user)
+				return false;
 
 			let { data } = await this.http.sendPost(
-				ENDPOINT.FRIENDS_BLOCKLIST + '/' + this.account.id + '/' + id,
+				ENDPOINT.FRIENDS_BLOCKLIST + '/' + this.account.id + '/' + user.id,
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
 
@@ -442,18 +435,14 @@ class Client extends Events {
 
 		try {
 			
-			if(this.isDisplayName(id)){
+			let user = await User.get(this, id);
 
-				let account = await this.lookup(id);
-				if(account)
-					id = account.id;
-				else return false;
-
-			}
+			if(!user)
+				return false;
 			
 			let { data } = await this.http.send(
 				'DELETE',
-				ENDPOINT.FRIENDS + '/' + this.account.id + '/' + id,
+				ENDPOINT.FRIENDS + '/' + this.account.id + '/' + user.id,
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
 
@@ -477,17 +466,13 @@ class Client extends Events {
 		
 		try {
 			
-			if(this.isDisplayName(id)){
+			let user = await User.get(this, id);
 
-				let account = await this.lookup(id);
-				if(account)
-					id = account.id;
-				else return false;
-
-			}
+			if(!user)
+				return false;
 				
 			let { data } = await this.http.sendPost(
-				ENDPOINT.FRIENDS + '/' + this.account.id + '/' + id,
+				ENDPOINT.FRIENDS + '/' + this.account.id + '/' + user.id,
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
 

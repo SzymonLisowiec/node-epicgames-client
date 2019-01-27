@@ -3,6 +3,10 @@ const EventEmitter = require('events');
 
 const EUserState = require('../../enums/UserState');
 
+const Friend = require('../Friend');
+const FriendRequest = require('../FriendRequest');
+const FriendMessage = require('../FriendMessage');
+
 class Communicator extends EventEmitter {
 
 	constructor (client) {
@@ -283,6 +287,7 @@ class Communicator extends EventEmitter {
 						break;
 
 					case 'com.epicgames.party.invitation':
+						console.dir(stanza);
 						this.emit('friend:party:invitation', {
 							account_id: stanza.from.local,
 							payload: body.payload,
@@ -307,31 +312,31 @@ class Communicator extends EventEmitter {
 						break;
 
 					case 'FRIENDSHIP_REMOVE':
-						this.emit('friend:removed', {
+						this.emit('friend:removed', new Friend(this.client, {
 							account_id: body.from,
-							status: body.status,
+							status: 'REMOVED',
 							time: new Date(body.timestamp),
 							reason: body.reason
-						});
+						}));
 						break;
 
 					case 'FRIENDSHIP_REQUEST':
 
 						if(body.status == 'ACCEPTED'){
-
-							this.emit('friend:added', {
+							
+							this.emit('friend:added', new Friend(this.client, {
 								account_id: body.to,
 								status: body.status,
 								time: new Date(body.timestamp)
-							});
+							}));
 
 						}else{
 
-							this.emit('friend:request', {
+							this.emit('friend:request', new FriendRequest(this.client, {
 								account_id: body.from,
 								status: body.status,
 								time: new Date(body.timestamp)
-							});
+							}));
 
 						}
 						break;
@@ -343,16 +348,23 @@ class Communicator extends EventEmitter {
 				}
 
 			}else if(stanza.type == 'chat') {
-
-				this.emit('friend:message', {
+				
+				this.emit('friend:message', new FriendMessage(this.client, {
 					account_id: stanza.from.local,
-					message: stanza.body
-				});
+					status: 'ACCEPTED', // status for Friend
+					message: stanza.body,
+					time: new Date()
+				}));
 
 			}else if(stanza.type == 'error'){
 
 				console.dir(stanza);
 				
+			}else{
+
+				console.log('Unknown stanza type!');
+				console.dir(stanza);
+
 			}
 
 			

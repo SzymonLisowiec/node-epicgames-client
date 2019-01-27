@@ -321,7 +321,7 @@ class Communicator extends EventEmitter {
 						break;
 
 					case 'FRIENDSHIP_REQUEST':
-
+						
 						if(body.status == 'ACCEPTED'){
 							
 							this.emit('friend:added', new Friend(this.client, {
@@ -333,7 +333,8 @@ class Communicator extends EventEmitter {
 						}else{
 
 							this.emit('friend:request', new FriendRequest(this.client, {
-								account_id: body.from,
+								account_id: this.client.account.id == body.from ? body.to : body.from,
+								direction: this.client.account.id == body.from ? 'OUTGOING' : 'INCOMING',
 								status: body.status,
 								time: new Date(body.timestamp)
 							}));

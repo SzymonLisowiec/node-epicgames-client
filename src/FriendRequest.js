@@ -8,6 +8,7 @@ class FriendRequest {
 		this.friend = new Friend(this.client, data);
 
 		this.account_id = this.friend.id; // backward compatibility
+		this.direction = data.direction;
 		this.status = data.status;
 		this.time = data.time;
 		

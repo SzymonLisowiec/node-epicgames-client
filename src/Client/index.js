@@ -8,6 +8,7 @@ const Auth = require('./Auth');
 const Debug = require('../Debug');
 const Communicator = require('../Communicator');
 const User = require('../User');
+const Friend = require('../Friend');
 
 class Client extends Events {
 
@@ -280,11 +281,11 @@ class Client extends Events {
 			);
 			
 			return data.map(account => {
-				return {
+				return new User(this, {
 					id: account.id,
 					display_name: account.displayName,
 					external_auths: account.externalAuths
-				}
+				});
 			});
 
 		}catch(err){
@@ -313,13 +314,13 @@ class Client extends Events {
 			if(data === '')
 				return [];
 			else return this.config.backward_compatibility ? data : data.map(account => {
-				return {
+				return new Friend(this, {
 					account_id: account.accountId,
 					status: account.status,
 					direction: account.direction,
 					created: new Date(account.created),
 					favorite: account.favorite
-				};
+				});
 			});
 
 		}catch(err){
@@ -415,7 +416,12 @@ class Client extends Events {
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
 
-			return true;
+			return new Friend(this, {
+				id: user.id,
+				display_name: user.display_name,
+				status: 'BLOCKED',
+				time: new Date()
+			});
 
 		}catch(err){
 
@@ -446,7 +452,12 @@ class Client extends Events {
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
 
-			return true;
+			return new Friend(this, {
+				id: user.id,
+				display_name: user.display_name,
+				status: 'REMOVED',
+				time: new Date()
+			});
 
 		}catch(err){
 
@@ -471,12 +482,17 @@ class Client extends Events {
 			if(!user)
 				return false;
 				
-			let { data } = await this.http.sendPost(
+			await this.http.sendPost(
 				ENDPOINT.FRIENDS + '/' + this.account.id + '/' + user.id,
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
-
-			return true;
+			
+			return new Friend(this, {
+				id: user.id,
+				display_name: user.display_name,
+				status: 'PENDING',
+				time: new Date()
+			});
 
 		}catch(err){
 

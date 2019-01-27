@@ -17,7 +17,7 @@ class User {
 			throw new Error('Trying of initialize User without account id. Provided data above.');
 		}
 
-		this.display_name = data.account_name || null;
+		this.display_name = data.account_name || data.display_name || null;
 		this.account_name = this.display_name; // backward compatibility
 
 	}

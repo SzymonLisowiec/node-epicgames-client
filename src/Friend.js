@@ -27,9 +27,9 @@ class Friend extends User {
 			return new this(client, {
 				account_id: account_id,
 				status: 'PENDING',
-				last_action_at: new Date();
+				last_action_at: new Date()
 			});
-			
+
 		}
 
 		return false;

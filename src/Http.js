@@ -31,6 +31,10 @@ class Http {
 
     removeHeader (name) {
         delete this.options.headers[name];
+	}
+
+    getHeader (name) {
+        return this.options.headers[name];
     }
 
     send (method, url, auth, data, isJsonResponse, headers) {

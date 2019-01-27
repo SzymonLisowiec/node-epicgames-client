@@ -114,6 +114,9 @@ let eg = new EpicGamesClient({
 * __game__ {_object_} - game library, e.g. [epicgames-fortnite-client](https://github.com/SzymonLisowiec/node-epicgames-fortnite-client)
 * __options__ {_object_} (optional) - game library constructor options
 
+## setLanguage(iso_lang_code)
+* __iso_lang_code__ {_string_} - e.g. `en`, `en-US`, `pl`, `pl-PL`
+
 ## getProfile(id_or_name)
 > Returns `User` object or `false` if user not found.
 * __id_or_name__ {_string_} - user's display name or id

@@ -9,6 +9,8 @@ class Friend extends User {
 
 		this.last_action_at = data.time;
 		this.time = this.last_action_at;  // backward compatibility
+
+		this.favorite = data.favorite || undefined;
 		
 	}
 

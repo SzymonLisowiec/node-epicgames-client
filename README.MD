@@ -109,12 +109,17 @@ let eg = new EpicGamesClient({
 ## getEpicDomains()
 > Returns array of domains using by EpicGames.
 
+## runGame(game, options)
+> Returns game object or `false` if can't run game.
+* __game__ {_object_} - game library, e.g. [epicgames-fortnite-client](https://github.com/SzymonLisowiec/node-epicgames-fortnite-client)
+* __options__ {_object_} (optional) - game library constructor options
+
 ## getProfile(id_or_name)
-> Returns account's id, display name and extarnalAuths or `false` if user not found.
+> Returns `User` object or `false` if user not found.
 * __id_or_name__ {_string_} - user's display name or id
 
 ## getProfiles(arr)
-> Returns account's id, display name and extarnalAuths for multiple accounts.
+> Returns array of `User` objects.
 * __arr__ {_array_} - Array with names or ids (can be mixed)
 
 ## lookup(display_name)
@@ -122,7 +127,7 @@ let eg = new EpicGamesClient({
 * __display_name__ {_string_} - user's display name
 
 ## getFriends([include_pending=false])
-> Returns array of your friends.
+> Returns array of your friends (`Friend` objects).
 * __include_pending__ {_boolean_} (optional) - whether including pending friends (invite requests).
 
 ## getPendingFriends()
@@ -136,15 +141,15 @@ let eg = new EpicGamesClient({
 > Returns array of your blacklisted friends.
 
 ## blockFriend(id_or_name)
-> Blocking a friend. Returns `true` or `false` depending on whether the operation was successful.
+> Blocking a friend. Returns `Friend` or `false` depending on whether the operation was successful.
 * __id_or_name__ {_string_} - user's display name or id
 
 ## removeFriend(id_or_name)
-> Removing a friend. Returns `true` or `false` depending on whether the operation was successful.
+> Removing a friend. Returns `Friend` or `false` depending on whether the operation was successful.
 * __id_or_name__ {_string_} - user's display name or id
 
 ## inviteFriend(id_or_name)
-> Sending a friend invite request. Returns `true` or `false` depending on whether the operation was successful.
+> Sending a friend invite request. Returns `Friend` or `false` depending on whether the operation was successful.
 * __id_or_name__ {_string_} - user's display name or id
 
 ## acceptFriendRequest(id_or_name)
@@ -155,7 +160,7 @@ let eg = new EpicGamesClient({
 > Declining friend's invitation. Alias for method removeFriend
 * __id_or_name__ {_string_} - user's display name or id
 
-## ~~getLauncherInfo()~~ DEPRECATED
+## ~~getLauncherInfo()~~ PROBABLY DEPRECATED
 > Returns object with informations about the current client (build etc.).
 
 ## getLauncherStatus()
@@ -211,18 +216,107 @@ Using for debugging, is emited while sending every data
 is emited after login
 ### friend:added
 is emited while you added new friend and he accepted invitation (and vice versa).
+**Returns *Friend* object.**
 ### friend:removed
 is emited while your friend has been removed from friends list.
+**Returns *Friend* object.**
 ### friend:status
 is emited while your friend updated status.
 ### friend:request
 is emited while someone invited you to friends.
+**Returns *FriendRequest* object.**
 ### friend:message
 is emited while your friend sent you a message.
+**Returns *FriendMessage* object.**
 ### friend:party:invitation
 is emited while your friend invite you to party.
 ### friend:party:join-request
 is emited while your friend wants join to your party.
+
+
+# User
+
+## Properties
+
+### id
+> User's id
+
+### display_name
+> Display name visible in game and on friends list.
+
+### external_auths
+> User's third party accounts e.g. PSN
+
+## Methods
+
+### *static* get(client, id_or_name)
+
+# Friend
+> This object is extended by `User`.
+
+## Properties
+
+### status
+> Friend status: UNDEFINED, PENDING, ACCEPTED, REMOVED, BLOCKED
+
+### favorite
+> Is favorite friend
+
+### last_action_at
+> Time of last action on this friend.
+
+## Methods
+
+### *static* invite(client, id_or_name)
+> Sending invite to user.
+
+### remove()
+> Removes friend
+
+# FriendRequest
+
+## Properties
+
+### friend
+> `Friend` object
+
+### direction
+> INCOMING or OUTGOING
+
+### status
+> same as in `Friend`
+
+### time
+> Time of receive friend request
+
+## Methods
+
+### accept()
+
+### reject()
+
+# FriendMessage
+
+## Properties
+
+### friend
+> `Friend` object
+
+### message
+> Received message
+
+### time
+> Time of receive message
+
+## Methods
+
+### reply(message)
+
+# TODO
+- [ ] Better reference API
+- [ ] Few improves
+- [ ] Implement support for all endpoints
+- [ ] Better OOP
 
 # License
 MIT License

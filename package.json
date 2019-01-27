@@ -1,32 +1,32 @@
 {
-  "name": "epicgames-client",
-  "version": "1.1.6",
-  "description": "Unofficial EpicGames Launcher in javascript.",
-  "main": "index.js",
-  "keywords": [
-    "epicgames",
-    "client",
-    "api"
-  ],
-  "homepage": "https://github.com/SzymonLisowiec/node-epicgames-client",
-  "bugs": {
-    "url": "https://github.com/SzymonLisowiec/node-epicgames-client/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/SzymonLisowiec/node-epicgames-client.git"
-  },
-  "author": {
-    "name": "Szymon Lisowiec",
-    "url": "https://kysune.me"
-  },
-  "license": "MIT",
-  "engines": {
-    "node": ">=8.0.0"
-  },
-  "dependencies": {
-    "cheerio": "^1.0.0-rc.2",
-    "request": "^2.85.0",
-    "stanza.io": "^9.1.0"
-  }
+	"name": "epicgames-client",
+	"version": "1.1.6",
+	"description": "Unofficial EpicGames Launcher in javascript.",
+	"main": "index.js",
+	"keywords": [
+		"epicgames",
+		"client",
+		"api"
+	],
+	"homepage": "https://github.com/SzymonLisowiec/node-epicgames-client",
+	"bugs": {
+		"url": "https://github.com/SzymonLisowiec/node-epicgames-client/issues"
+	},
+	"repository": {
+		 "type": "git",
+		 "url": "https://github.com/SzymonLisowiec/node-epicgames-client.git"
+	},
+	"author": {
+		"name": "Szymon Lisowiec",
+		"url": "https://kysune.me"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=8.0.0"
+	},
+	"dependencies": {
+		"cheerio": "^1.0.0-rc.2",
+		"request": "^2.85.0",
+		"stanza.io": "^9.1.0"
+	}
 }

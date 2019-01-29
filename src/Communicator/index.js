@@ -287,7 +287,6 @@ class Communicator extends EventEmitter {
 						break;
 
 					case 'com.epicgames.party.invitation':
-						console.dir(stanza);
 						this.emit('friend:party:invitation', {
 							account_id: stanza.from.local,
 							payload: body.payload,

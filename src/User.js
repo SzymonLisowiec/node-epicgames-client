@@ -26,7 +26,7 @@ class User {
 
 	static async get (client, user) {
 		
-		if(client.isDisplayName(user)){
+		if(typeof user == 'string' && client.isDisplayName(user)){
 
 			let account = await client.lookup(user);
 			if(account)

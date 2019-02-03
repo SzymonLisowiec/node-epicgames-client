@@ -17,10 +17,12 @@ class Communicator extends EventEmitter {
 		if(this.app.app_xmpp_name === 'launcher')
 			this.client = this.app;
 		else this.client = this.app.launcher;
+		
+		this.resource = 'V2:' + this.app.app_xmpp_name + ':WIN';
 
 	}
 
-	connect () {
+	connect (auth_token) {
 		return new Promise((resolve, reject) => {
 
 			this.stream = new StanzaIO.createClient({
@@ -33,10 +35,10 @@ class Communicator extends EventEmitter {
 					jid: this.client.account.id + '@prod.ol.epicgames.com',
 					host: 'prod.ol.epicgames.com',
 					username: this.client.account.id,
-					password: this.client.account.auth.access_token
+					password: auth_token || this.client.account.auth.access_token
 				},
 
-				resource: 'V2:' + this.app.app_xmpp_name + ':WIN'
+				resource: this.resource
 				
 			});
 	
@@ -61,7 +63,7 @@ class Communicator extends EventEmitter {
 
 				this.emit('connected');
 
-				this.client.debug.print('Communicator: Connected');
+				this.client.debug.print('Communicator[' + this.resource + ']: Connected');
 
 			});
 
@@ -69,8 +71,8 @@ class Communicator extends EventEmitter {
 
 				this.emit('disconnected');
 
-				this.client.debug.print('Communicator: Disconnected');
-				this.client.debug.print('Communicator: Trying reconnect...');
+				this.client.debug.print('Communicator[' + this.resource + ']: Disconnected');
+				this.client.debug.print('Communicator[' + this.resource + ']: Trying reconnect...');
 
 				await this.disconnect(true);
 				this.stream.connect();
@@ -81,10 +83,10 @@ class Communicator extends EventEmitter {
 
 				this.emit('session:ended');
 
-				this.client.debug.print('Communicator: Session ended');
+				this.client.debug.print('Communicator[' + this.resource + ']: Session ended');
 
-				this.client.debug.print('Communicator: There will be try of restart connection to obtain new session (at the moment I\'m only testing this solution).');
-				this.client.debug.print('Communicator: Trying restart connection to obtain new session...');
+				this.client.debug.print('Communicator[' + this.resource + ']: There will be try of restart connection to obtain new session (at the moment I\'m only testing this solution).');
+				this.client.debug.print('Communicator[' + this.resource + ']: Trying restart connection to obtain new session...');
 				
 				await this.disconnect();
 				this.stream.connect();
@@ -95,7 +97,7 @@ class Communicator extends EventEmitter {
 
 				this.emit('session:started');
 
-				this.client.debug.print('Communicator: Session started');
+				this.client.debug.print('Communicator[' + this.resource + ']: Session started');
 
 				this.refreshFriendsList();
 				this.updateStatus();
@@ -124,7 +126,7 @@ class Communicator extends EventEmitter {
 
 			this.stream.once('disconnected', _ => {
 
-				this.client.debug.print('Communicator: Disconnected');
+				this.client.debug.print('Communicator[' + this.resource + ']: Disconnected');
 				
 				resolve();
 
@@ -182,7 +184,7 @@ class Communicator extends EventEmitter {
 						break;
 
 					default:
-						this.client.debug.print('Communicator: Unexpected friend subscription in stanza `roster:update`: ' + stanza.type);
+						this.client.debug.print('Communicator[' + this.resource + ']: Unexpected friend subscription in stanza `roster:update`: ' + stanza.type);
 						break;
 
 				}
@@ -242,7 +244,7 @@ class Communicator extends EventEmitter {
 					break;
 
 				default:
-					this.client.debug.print('Communicator: Unexpected `presence` type: ' + stanza.type);
+					this.client.debug.print('Communicator[' + this.resource + ']: Unexpected `presence` type: ' + stanza.type);
 					break;
 
 			}
@@ -348,7 +350,7 @@ class Communicator extends EventEmitter {
 						break;
 
 					default:
-						this.client.debug.print('Communicator: Unexpected `message` type: ' + body.type);
+						this.client.debug.print('Communicator[' + this.resource + ']: Unexpected `message` type: ' + body.type);
 						break;
 
 				}

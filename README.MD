@@ -207,7 +207,7 @@ let eg = new EGClient({
 * __message__ {_string_} - message
 
 ### updateStatus([status=null])
-* __status__ {_string_} (optional) - status is displaying under name on friends list.
+* __status__ {_string, object or null_} (optional) - status is displaying under name on friends list.
 
 ## Events
 

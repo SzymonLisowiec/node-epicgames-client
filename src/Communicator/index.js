@@ -36,7 +36,7 @@ class Communicator extends EventEmitter {
 					password: this.client.account.auth.access_token
 				},
 
-				resource: 'V2:launcher:WIN'
+				resource: 'V2:' + this.app.app_xmpp_name + ':WIN'
 				
 			});
 	

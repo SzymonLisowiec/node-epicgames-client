@@ -31,6 +31,16 @@ class Communicator extends EventEmitter {
 					username: this.client.account.id,
 					password: this.client.account.auth.access_token
 				}
+
+				// resource: 'Fortnite',
+				
+				// capsNode: 'Fortnite',
+
+				// softwareVersion: {
+				// 	name: 'Launcher',
+				// 	version: 2,
+				// 	os: 'WIN'
+				// }
 	
 			});
 	
@@ -393,13 +403,21 @@ class Communicator extends EventEmitter {
 	}
 
 	updateStatus (status) {
+		
+		if(!status)
+			return this.stream.sendPresence(null);
+		
+		if(typeof status == 'string'){
 
-		this.stream.sendPresence(status ? {
-			status: {
-				status: status
-			}
-		} : null);
+			return this.stream.sendPresence({
+				status: {
+					status: status
+				}
+			});
 
+		}else return this.stream.sendPresence(status);
+
+		return false;
 	}
 
 }

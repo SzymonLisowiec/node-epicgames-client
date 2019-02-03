@@ -3,6 +3,7 @@ module.exports = {
     Client: require('./src/Client'),
     WaitingRoom: require('./src/WaitingRoom'),
 	User: require('./src/User'),
+	Communicator: require('./src/Communicator'),
 	
 	Endpoints: require('./resources/Endpoint'),
 	

@@ -1,6 +1,6 @@
 {
 	"name": "epicgames-client",
-	"version": "1.2.4",
+	"version": "1.2.5",
 	"description": "Unofficial EpicGames Launcher in javascript.",
 	"main": "index.js",
 	"keywords": [
@@ -13,8 +13,8 @@
 		"url": "https://github.com/SzymonLisowiec/node-epicgames-client/issues"
 	},
 	"repository": {
-		 "type": "git",
-		 "url": "https://github.com/SzymonLisowiec/node-epicgames-client.git"
+		"type": "git",
+		"url": "https://github.com/SzymonLisowiec/node-epicgames-client.git"
 	},
 	"author": {
 		"name": "Szymon Lisowiec",

@@ -38,8 +38,8 @@ class Client extends Events {
 		});
 
 		this.os = 'Windows/10.0.17134.1.768.64bit';
-		this.build = '8.4.0-4627382+++Portal+Release-Live'; //Build of Launcher
-		this.ue_build = '4.18.0-3948288+++Portal+Release-Live'; //Build of Unreal Engine
+		this.build = '9.6.1-4858958+++Portal+Release-Live'; //Build of Launcher
+		this.ue_build = '4.21.0-4858958+++Portal+Release-Live'; //Build of Unreal Engine
 
 		this.http = new Http(this);
         this.http.setHeader('Accept-Language', this.config.language);

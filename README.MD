@@ -2,6 +2,8 @@
 # node-epicgames-client
 Unofficial EpicGames Launcher in javascript.
 
+__This library supports only epicgames launcher. If you need fortnite client, check [`node-epicgames-fortnite-client`](https://github.com/SzymonLisowiec/node-epicgames-fortnite-client)__
+
 # Installation
 ```
 npm i epicgames-client --save

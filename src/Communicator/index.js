@@ -9,10 +9,14 @@ const FriendMessage = require('../FriendMessage');
 
 class Communicator extends EventEmitter {
 
-	constructor (client) {
-		super(client);
+	constructor (app) {
+		super();
+		
+		this.app = app;
 
-		this.client = client;
+		if(this.app.app_xmpp_name === 'launcher')
+			this.client = this.app;
+		else this.client = this.app.launcher;
 
 	}
 

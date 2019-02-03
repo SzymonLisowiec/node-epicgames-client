@@ -15,6 +15,9 @@ class Client extends Events {
 	constructor (config) {
 		super(config);
 
+		this.app_name = 'Launcher';
+		this.app_xmpp_name = 'launcher';
+
 		this.config = Object.assign({
 			
 			email: null,

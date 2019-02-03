@@ -30,18 +30,10 @@ class Communicator extends EventEmitter {
 					host: 'prod.ol.epicgames.com',
 					username: this.client.account.id,
 					password: this.client.account.auth.access_token
-				}
+				},
 
-				// resource: 'Fortnite',
+				resource: 'V2:launcher:WIN'
 				
-				// capsNode: 'Fortnite',
-
-				// softwareVersion: {
-				// 	name: 'Launcher',
-				// 	version: 2,
-				// 	os: 'WIN'
-				// }
-	
 			});
 	
 			this.stream.enableKeepAlive({

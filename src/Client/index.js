@@ -574,7 +574,7 @@ class Client extends Events {
 				ENDPOINT.EULA_TRACKING.replace('{{namespace}}', namespace) + '/account/' + this.account.id + '?locale=' + this.http.getHeader('Accept-Language'),
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
-			
+
 			return !data ? true : data;
 
 		}catch(err){
@@ -592,7 +592,7 @@ class Client extends Events {
 		try {
 			
 			let { response } = await this.http.sendPost(
-				ENDPOINT.EULA_TRACKING.replace('{{namespace}}', namespace) + '/version/' + version + '/account/' + this.account.id + '/accept?locale=' + locale,
+				ENDPOINT.EULA_TRACKING.replace('{{namespace}}', namespace) + '/version/' + eula.version + '/account/' + this.account.id + '/accept?locale=' + eula.locale,
 				this.account.auth.token_type + ' ' + this.account.auth.access_token
 			);
 			
@@ -600,7 +600,7 @@ class Client extends Events {
 
 		}catch(err){
 
-			this.debug.print('Cannot accept EULA v' + version + ' for namespace ' + namespace);
+			this.debug.print('Cannot accept EULA v' + eula.version + ' for namespace ' + namespace);
 			this.debug.print(new Error(err));
 
 		}
@@ -613,7 +613,7 @@ class Client extends Events {
 		try {
 			
 			this.debug.print('Running game ' + game.Namespace);
-
+			
 			let eula = await this.checkEULA(game.Namespace);
 			
 			if(eula !== true){

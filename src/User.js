@@ -4,10 +4,24 @@ class User {
 
 		this.client = client;
 		
-		if(typeof data != 'object')
-			data = {
-				account_id: data
-			};
+		if(typeof data != 'object'){
+			
+			if(data === 'me'){
+
+				data = {
+					account_id: this.client.account.id,
+					display_name: this.client.account.display_name
+				}
+
+			}else{
+
+				data = {
+					account_id: data
+				};
+
+			}
+
+		}
 		
 		this.id = data.account_id || data.id;
 		this.account_id = this.id; // backward compatibility
@@ -16,6 +30,8 @@ class User {
 			console.dir(data);
 			throw new Error('Trying of initialize User without account id. Provided data above.');
 		}
+
+		this.jid = data.jid || null;
 
 		this.display_name = data.account_name || data.display_name || null;
 		this.account_name = this.display_name; // backward compatibility

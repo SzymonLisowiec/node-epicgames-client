@@ -1,6 +1,6 @@
 {
 	"name": "epicgames-client",
-	"version": "1.2.62",
+	"version": "1.2.7",
 	"description": "Unofficial EpicGames Launcher in javascript.",
 	"main": "index.js",
 	"keywords": [
@@ -27,6 +27,7 @@
 	"dependencies": {
 		"cheerio": "^1.0.0-rc.2",
 		"request": "^2.85.0",
-		"stanza.io": "^9.1.0"
+		"stanza.io": "^9.1.0",
+		"uuid": "^3.3.2"
 	}
 }

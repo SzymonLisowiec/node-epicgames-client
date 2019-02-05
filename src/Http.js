@@ -15,7 +15,7 @@ class Http {
 
         }, this.launcher.config.http);
 
-        this.options.jar = this.jar;
+		this.options.jar = this.jar;
 
         this.request = Request.defaults(this.options);
 
@@ -37,14 +37,14 @@ class Http {
         return this.options.headers[name];
     }
 
-    send (method, url, auth, data, isJsonResponse, headers) {
+    send (method, url, auth, data, isJsonResponse, headers, is_json_data) {
 
         if(typeof isJsonResponse != 'boolean')
-            isJsonResponse = true;
+			isJsonResponse = true;
 
         return new Promise((resolve, reject) => {
             
-            let options = Object.assign(this.options, {
+            let options = Object.assign({}, this.options, {
                 url
             });
             
@@ -56,7 +56,12 @@ class Http {
                 else options.headers.Authorization = auth;
             }
 
-            if(data) options.form = data;
+            if(data){
+				if(is_json_data){
+					options.headers['Content-Type'] = 'application/json';
+					options.body = data;
+				}else options.form = data;
+			}
             if(isJsonResponse) options.json = isJsonResponse;
 
             options.headers['User-Agent'] = this.getUserAgent();

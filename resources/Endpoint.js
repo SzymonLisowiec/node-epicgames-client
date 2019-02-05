@@ -1,7 +1,11 @@
 module.exports = Object.freeze({
 
 	EULA_TRACKING: 'https://eulatracking-public-service-prod06.ol.epicgames.com/eulatracking/api/public/agreements/{{namespace}}',
+	ORDER_QUICKPURCHASE: 'https://orderprocessor-public-service-ecomprod01.ol.epicgames.com/orderprocessor/api/shared/accounts/{{account_id}}/orders/quickPurchase', // ?country=PL&locale=pl
+	CATALOG_OFFERS: 'https://catalog-public-service-prod06.ol.epicgames.com/catalog/api/shared/namespace/{{namespace}}/offers', // |/bulk/offers ?id=09176f4ff7564bbbb499bbe20bd6348f&returnItemDetails=false&country=PL&locale=pl
     
+	ENTITLEMENTS: 'https://entitlement-public-service-prod08.ol.epicgames.com/entitlement/api/account/{{account_id}}/entitlements', // ?start=0&count=5000
+	
     LAUNCHER_STATUS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/info/launcher',
 	LAUNCHER_INFO: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/Windows/x/EpicGamesLauncher',
 	
@@ -23,7 +27,6 @@ module.exports = Object.freeze({
 
     //TODO:
     ACCOUNT_PAYMENTS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/payment/accounts/{{account_id}}/billingaccounts/default',
-    ACCOUNT_ENTITLEMENTS: 'https://entitlement-public-service-prod08.ol.epicgames.com/entitlement/api/account/{{account_id}}/entitlements', // ?start=0&count=5000 // returns array of account entitlements
     CATALOG: 'https://catalog-public-service-prod06.ol.epicgames.com/catalog/api/shared/namespace/{{namespace}}/items', // ?status=SUNSET%7CACTIVE&sortBy=creationDate&country=US&locale=pl-PL&start=0&count=1000
 	ACCOUNT_EXTERNAL_AUTHS: 'https://account-public-service-prod03.ol.epicgames.com/account/api/public/account/{{account_id}}/externalAuths',
 	ACCOUNT_METADATA: 'https://account-public-service-prod03.ol.epicgames.com/account/api/accounts/{{account_id}}/metadata',

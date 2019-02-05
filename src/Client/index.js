@@ -51,6 +51,7 @@ class Client extends Events {
 		this.communicator = null;
 
 		this.auth = null;
+		this.entitlements = [];
 		
 	}
 
@@ -144,6 +145,8 @@ class Client extends Events {
 			this.communicator = new Communicator(this);
 			await this.communicator.connect();
 
+			this.entitlements = await this.getEntitlements();
+
 			this.debug.print('Account logged.');
 
 			return true;
@@ -230,6 +233,96 @@ class Client extends Events {
 
 			if(err != 'errors.com.epicgames.account.account_not_found')
 				this.debug.print(new Error(err));
+
+		}
+
+		return false;
+	}
+
+	findActiveEntitlementByName (name) {
+		return this.entitlements.find(entitlement => {
+			return entitlement.entitlementName == name && entitlement.active == true;
+		});
+	}
+
+	async getEntitlements () {
+		
+		try {
+			
+			let { data } = await this.http.sendGet(
+				ENDPOINT.ENTITLEMENTS.replace('{{account_id}}', this.account.id) + '?start=0&count=5000',
+				this.account.auth.token_type + ' ' + this.account.auth.access_token
+			);
+			
+			return data;
+
+		}catch(err){
+
+			this.debug.print(new Error(err));
+
+		}
+
+		return false;
+	}
+	
+	async getOffersForNamespace (namespace, count, start) {
+		
+		try {
+
+			if(typeof count != 'number')
+				count = 10;
+
+			if(typeof start != 'number')
+				start = 0;
+			
+			let { data } = await this.http.sendGet(
+				ENDPOINT.CATALOG_OFFERS.replace('{{namespace}}', namespace) + '?start=' + start + '&count=' + count,
+				this.account.auth.token_type + ' ' + this.account.auth.access_token
+			);
+			
+			return data;
+
+		}catch(err){
+
+			this.debug.print(new Error(err));
+
+		}
+
+		return false;
+	}
+
+	async quickPurchase (offer, quantity) {
+		
+		try {
+
+			let line_offers = [
+				{
+					offerId: offer.id,
+					quantity: quantity || 1,
+					namespace: offer.namespace
+				}
+			];
+			
+			let { data } = await this.http.send(
+				'POST',
+				ENDPOINT.ORDER_QUICKPURCHASE.replace('{{account_id}}', this.account.id),
+				this.account.auth.token_type + ' ' + this.account.auth.access_token,
+				{
+					salesChannel: 'Launcher-purchase-client',
+					entitlementSource: 'Launcher-purchase-client',
+					returnSplitPaymentItems: false,
+					lineOffers: line_offers
+				},
+				true,
+				null,
+				true
+			);
+			
+			return data.quickPurchaseStatus && data.quickPurchaseStatus == 'SUCCESS';
+
+		}catch(err){
+
+			this.debug.print(new Error(err));
 
 		}
 
@@ -633,6 +726,25 @@ class Client extends Events {
 
 			if(eula !== true)
 				throw new Error('Cannot accept EULA for game ' + game.Namespace + '!');
+
+			if(!this.findActiveEntitlementByName('Fortnite_Free')){
+
+				if(typeof game.store_offer_id == 'undefined')
+					throw new Error('Account don\'t have game "' + game.Name + '".');
+				
+				let purchase = await this.quickPurchase({
+					id: game.store_offer_id,
+					namespace: game.Namespace
+				});
+
+				if(!purchase)
+					throw new Error('Buy game "' + game.Name + '" has failed.');
+
+				this.entitlements = await this.getEntitlements();
+
+				this.debug.print('Game "' + game.Name + '" has been bought!');
+
+			}
 
 			let game_client = new game.Client(this, options);
 

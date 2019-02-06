@@ -9,6 +9,9 @@ __This library supports only epicgames launcher. If you need fortnite client, ch
 npm i epicgames-client --save
 ```
 
+# Wiki in progress
+[CLICK HERE](https://github.com/SzymonLisowiec/node-epicgames-client/wiki)
+
 # Do you need help?
 Check our discord server: https://discord.gg/HxGfuEx
 

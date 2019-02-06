@@ -1,6 +1,6 @@
 const User = require('../User');
 
-class PartyJoinRequest {
+class PartyJoinRequestRejected {
 
 	constructor (communicator, data) {
 		
@@ -56,4 +56,4 @@ class PartyJoinRequest {
 
 }
 
-module.exports = PartyJoinRequest;
+module.exports = PartyJoinRequestRejected;

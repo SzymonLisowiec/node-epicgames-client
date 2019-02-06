@@ -7,8 +7,9 @@ const EUserState = require('../../enums/UserState');
 const User = require('../User');
 const Friend = require('../Friend');
 const FriendRequest = require('../FriendRequest');
-const FriendMessage = require('../FriendMessage');
+const FriendMessage = require('./FriendMessage');
 
+const Party = require('./Party');
 const PartyInvitation = require('./PartyInvitation');
 const PartyJoinRequest = require('./PartyJoinRequest');
 const PartyJoinRequestApproved = require('./PartyJoinRequestApproved');
@@ -19,10 +20,14 @@ const PartyMemberJoined = require('./PartyMemberJoined');
 const PartyMemberExited = require('./PartyMemberExited');
 const PartyMemberPromoted = require('./PartyMemberPromoted');
 const PartyData = require('./PartyData');
+const PartyQueryJoinability = require('./PartyQueryJoinability');
+const PartyQueryJoinabilityResponse = require('./PartyQueryJoinabilityResponse');
+const PartyInvitationResponse = require('./PartyInvitationResponse');
+const PartyUpdateConfirmation = require('./PartyUpdateConfirmation');
 
 class Communicator extends EventEmitter {
 
-	constructor (app) {
+	constructor (app, extensions) {
 		super();
 		
 		this.app = app;
@@ -33,22 +38,91 @@ class Communicator extends EventEmitter {
 		
 		this.resource = 'V2:' + this.app.app_xmpp_name + ':WIN::' + this.generateUUID();
 
+		this.extensions = extensions || {};
+
 	}
 
 	generateUUID () {
 		return UUID().replace(/\-/g, '').toUpperCase();
 	}
 
-	makeJID () {
-		return StanzaIO.JID;
+	makeJID (...args) {
+		return new StanzaIO.JID(...args);
 	}
 
 	static get PartyJoinRequest () { return PartyJoinRequest; }
+	static get PartyJoinRequestApproved () { return PartyJoinRequestApproved; }
 	static get PartyJoinAcknowledged () { return PartyJoinAcknowledged; }
+	static get PartyData () { return PartyData; }
 	static get PartyMemberData () { return PartyMemberData; }
+	static get PartyQueryJoinability () { return PartyQueryJoinability; }
+	static get PartyQueryJoinabilityResponse () { return PartyQueryJoinabilityResponse; }
 
 	getClient () {
 		return this.client;
+	}
+
+	async makeParty () { // EXPERIMENTAL
+
+		let party = new Party(this, {
+			party_id: this.generateUUID(),
+			party_type_id: 286331153,
+			access_key: this.generateUUID(),
+			party_flags: 6,
+			not_accepting_member_reason: 0,
+			max_members: 4,
+			password: '',
+			presence_permissions: 1904481024,
+			invite_permissions: 32512,
+			leader: this.client.account.id,
+			app_id: 'Fortnite',
+			build_id: 4691381,
+			members: [
+				new User(this.client, {
+					account_id: this.client.account.id,
+					display_name: this.client.account.display_name,
+					jid: this.stream.jid
+				})
+			]
+		});
+
+		let properties = {};
+
+		properties['party.joininfodata.' + party.type_id + '_j'] = {
+			sourceId: this.client.account.id,
+			sourceDisplayName: this.client.account.display_name,
+			sourcePlatform: 'WIN',
+			partyId: party.id,
+			partyTypeId: party.type_id,
+			key: party.access_key,
+			appId: party.app_id,
+			buildId: party.build_id.toString(),
+			partyFlags: party.flags,
+			notAcceptingReason: party.not_accepting_member_reason
+		};
+
+		properties = Object.assign(properties, {
+			FortBasicInfo_j: {
+				homeBaseRating: 1
+			},
+			FortLFG_I: '0',
+			FortPartySize_i: 1,
+			FortSubGame_i: 1,
+			InUnjoinableMatch_b: false
+		});
+
+		await this.updateStatus({
+			status: JSON.stringify({
+				Status: 'Lobby Battle Royale - ' + party.members.length + ' / ' + party.max_members,
+				bIsPlaying: false,
+				bIsJoinable: true,
+				bHasVoiceSupport: false,
+				SessionId: '',
+				Properties: properties
+			})
+		});
+
+		return party;
 	}
 
 	connect (auth_token) {
@@ -79,7 +153,7 @@ class Communicator extends EventEmitter {
 			this.listenFriendActions();
 			this.listenFriendStates();
 			this.listenMessages();
-	
+
 			this.stream.on('raw:incoming', xml => {
 				this.emit('raw:incoming', xml);
 			});
@@ -228,55 +302,31 @@ class Communicator extends EventEmitter {
 		
 		this.stream.on('presence', stanza => {
 			
-			switch (stanza.type) {
+			let status = {};
+			let app = {};
 
-				case 'available':
-					
-					let payload = {
-						state: stanza.show ? EUserState.Away : EUserState.Online,
-						account_id: stanza.from.local
-					};
-
-					if(stanza.status){
-						
-						stanza.status = JSON.parse(stanza.status);
-						
-						let in_game = false;
-
-						try {
-							in_game = stanza.from.resource.toLowerCase().split(':')[1];
-						}catch(err){
-							in_game = null;
-						}
-
-						payload = Object.assign(payload, {
-							status: stanza.status.Status,
-							is_playing: stanza.status.bIsPlaying,
-							is_joinable: stanza.status.bIsJoinable,
-							has_voice_support: stanza.status.bHasVoiceSupport,
-							session_id: stanza.status.SessionId,
-							properties: stanza.status.Properties,
-							in_game
-						});
-
-					}
-
-					this.emit('friend:status', payload);
-
-					break;
-
-				case 'unavailable':
-					this.emit('friend:status', {
-						state: EUserState.Offline,
-						account_id: stanza.from.local
-					});
-					break;
-
-				default:
-					this.client.debug.print('Communicator[' + this.resource + ']: Unexpected `presence` type: ' + stanza.type);
-					break;
-
+			try {
+				if(stanza.status)
+					status = JSON.parse(stanza.status);
+			}catch(err){
+				this.client.debug.print('Communicator[' + this.resource + ']: Cannot parse status\'s JSON for presentence. (' + stanza.status + ')');
 			}
+
+			try {
+				app = stanza.from.resource.toLowerCase().split(':')[1];
+			}catch(err){
+				app = null;
+			}
+
+			const Status = require(this.app.library_name + '/src/Communicator/Status');
+			
+			this.emit('friend:status', new Status(this, {
+				account_id: stanza.from.local,
+				jid: stanza.from,
+				state: stanza.type === 'available' ? stanza.show ? EUserState.Online : EUserState.Away : EUserState.Offline,
+				app,
+				status
+			}));
 			
 		});
 
@@ -323,8 +373,9 @@ class Communicator extends EventEmitter {
 						*/
 						break;
 
-					case 'com.epicgames.party.invitation':
-						this.emit('friend:party:invitation', new PartyInvitation(this, {
+					case 'com.epicgames.party.invitation': {
+
+						let payload = {
 							account_id: stanza.from.local,
 							account_name: body.payload.displayName,
 							jid: stanza.from,
@@ -334,25 +385,53 @@ class Communicator extends EventEmitter {
 							app_id: body.payload.appId,
 							build_id: body.payload.buildId,
 							time: new Date(body.timestamp)
-						}));
-						break;
+						};
 
-					case 'com.epicgames.party.joinrequest':
-						this.emit('friend:party:join-request', new PartyJoinRequest(this, {
+						payload.party = new Party(this, payload);
+
+						this.emit('party:invitation', new PartyInvitation(this, payload));
+						this.emit('party#' + payload.party_id + ':invitation', new PartyInvitation(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.invitationresponse': {
+						
+						let payload = {
+							account_id: stanza.from.local,
+							account_name: body.payload.displayName,
+							jid: stanza.from,
+							party_id: body.payload.partyId,
+							response: body.payload.response, // 2 = rejected
+							time: new Date(body.timestamp)
+						};
+
+						this.emit('party:invitation:response', new PartyInvitationResponse(this, payload));
+						this.emit('party#' + payload.party_id + ':invitation:response', new PartyInvitationResponse(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.joinrequest': {
+
+						let payload = {
 							account_id: stanza.from.local,
 							jid: stanza.from,
-							display_name: body.payload.display_name,
+							display_name: body.payload.displayName,
 							party_id: body.payload.partyId,
 							platform: body.payload.platform,
 							accessKey: body.payload.accessKey,
 							app_id: body.payload.appId,
 							build_id: body.payload.buildId,
 							time: new Date(body.timestamp)
-						}));
-						break;
+						};
 
-					case 'com.epicgames.party.joinrequest.approved':
-						this.emit('friend:party:join-approved', new PartyJoinRequestApproved(this, {
+						this.emit('party:join:request', new PartyJoinRequest(this, payload));
+						this.emit('party#' + payload.party_id + ':join:request', new PartyJoinRequest(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.joinrequest.approved': {
+
+						let payload = {
 							account_id: stanza.from.local,
 							jid: stanza.from,
 							party_id: body.payload.partyId,
@@ -366,77 +445,189 @@ class Communicator extends EventEmitter {
 							password: body.payload.password,
 							members: body.payload.members,
 							time: new Date(body.timestamp)
-						}));
-						break;
+						};
 
-					case 'com.epicgames.party.memberjoined':
-						this.emit('friend:party:memberjoined', new PartyMemberJoined(this, {
+						this.emit('party:join:approved', new PartyJoinRequestApproved(this, payload));
+						this.emit('party#' + payload.party_id + ':join:approved', new PartyJoinRequestApproved(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.updatepartyconfiguration': {
+
+						let payload = {
+							account_id: stanza.from.local,
+							jid: stanza.from,
+							party_id: body.payload.partyId,
+							access_key: body.payload.accessKey,
+							presence_permissions: body.payload.presencePermissions,
+							invite_permissions: body.payload.invitePermissions,
+							party_flags: body.payload.partyFlags,
+							not_accepting_member_reason: body.payload.notAcceptingMembersReason,
+							max_members: body.payload.maxMembers,
+							password: body.payload.password,
+							time: new Date(body.timestamp)
+						};
+
+						this.emit('party:updatepartyconfiguration', new PartyUpdateConfirmation(this, payload));
+						this.emit('party#' + payload.party_id + ':updatepartyconfiguration', new PartyUpdateConfirmation(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.joinrequest.rejected': {
+
+						let payload = {
+							account_id: stanza.from.local,
+							jid: stanza.from,
+							party_id: body.payload.partyId,
+							rejection_type: body.payload.rejectionType,
+							result_param: body.payload.resultParam,
+							time: new Date(body.timestamp)
+						};
+
+						this.emit('party:join:rejected', new PartyMemberJoined(this, payload));
+						this.emit('party#' + payload.party_id + ':join:rejected', new PartyMemberJoined(this, payload));
+					
+					} break;
+
+					case 'com.epicgames.party.memberjoined': {
+
+						let payload = {
 							account_id: stanza.from.local,
 							jid: stanza.from,
 							party_id: body.payload.partyId,
 							member: body.payload.member,
 							time: new Date(body.timestamp)
-						}));
-						break;
+						};
 
-					case 'com.epicgames.party.memberexited':
-						this.emit('friend:party:memberexited', new PartyMemberExited(this, {
+						this.emit('party:member:joined', new PartyMemberJoined(this, payload));
+						this.emit('party#' + payload.party_id + ':member:joined', new PartyMemberJoined(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.memberexited': {
+
+						let payload = {
 							account_id: stanza.from.local,
 							jid: stanza.from,
 							party_id: body.payload.partyId,
-							member: body.payload.memberId,
+							member_id: body.payload.memberId,
 							was_kicked: body.payload.wasKicked,
 							time: new Date(body.timestamp)
-						}));
-						break;
+						};
 
-					case 'com.epicgames.party.memberpromoted':
-						this.emit('friend:party:memberpromoted', new PartyMemberPromoted(this, {
+						this.emit('party:member:exited', new PartyMemberExited(this, payload));
+						this.emit('party#' + payload.party_id + ':member:exited', new PartyMemberExited(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.memberpromoted': {
+
+						let payload = {
 							account_id: stanza.from.local,
 							jid: stanza.from,
 							party_id: body.payload.partyId,
 							member: body.payload.promotedMemberUserId,
 							leader_leaving: body.payload.fromLeaderLeaving,
 							time: new Date(body.timestamp)
-						}));
-						break;
+						}
 
-					case 'com.epicgames.party.data':
-						this.emit('friend:party:data', new PartyData(this, {
+						this.emit('party:member:promoted', new PartyMemberPromoted(this, payload));
+						this.emit('party#' + payload.party_id + ':member:promoted', new PartyMemberPromoted(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.data': {
+
+						let payload = {
 							account_id: stanza.from.local,
 							jid: stanza.from,
 							party_id: body.payload.partyId,
 							payload: body.payload.payload,
 							time: new Date(body.timestamp)
-						}));
-						break;
+						};
 
-					case 'com.epicgames.party.memberdata':
-						this.emit('friend:party:memberdata', new PartyMemberData(this, {
+						this.emit('party:data', new PartyData(this, payload));
+						this.emit('party#' + payload.party_id + ':data', new PartyData(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.memberdata': {
+
+						let payload = {
 							account_id: stanza.from.local,
 							jid: stanza.from,
 							party_id: body.payload.partyId,
 							payload: body.payload.payload,
 							time: new Date(body.timestamp)
-						}));
-						break;
+						};
 
-					case 'com.epicgames.party.queryjoinability':
-						this.emit('friend:party:queryjoinability', {
+						this.emit('party:member:data', new PartyMemberData(this, payload));
+						this.emit('party#' + payload.party_id + ':member:data', new PartyMemberData(this, payload));
+						
+					} break;
+
+					case 'com.epicgames.party.queryjoinability': {
+
+						let payload = {
 							account_id: stanza.from.local,
-							payload: body.payload,
+							jid: stanza.from,
+							party_id: body.payload.partyId,
+							access_key: body.payload.accessKey,
+							app_id: body.payload.appId,
+							build_id: body.payload.buildId,
+							join_data: body.payload.joinData,
 							time: new Date(body.timestamp)
-						});
-						break;
+						};
 
-					case 'com.epicgames.party.joinacknowledged.response':
-						this.emit('friend:party:joinacknowledged:response', new PartyJoinAcknowledgedResponse(this, {
+						this.emit('party:query:joinability', new PartyQueryJoinability(this, payload));
+						this.emit('party#' + payload.party_id + ':query:joinability', new PartyQueryJoinability(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.queryjoinability.response': {
+
+						let payload = {
+							account_id: stanza.from.local,
+							jid: stanza.from,
+							party_id: body.payload.partyId,
+							is_joinable: body.payload.isJoinable,
+							rejection_type: body.payload.rejectionType,
+							result_param: body.payload.resultParam,
+							time: new Date(body.timestamp)
+						};
+
+						this.emit('party:queryjoinability:response', new PartyQueryJoinabilityResponse(this, payload));
+						this.emit('party#' + payload.party_id + ':queryjoinability:response', new PartyQueryJoinabilityResponse(this, payload));
+						
+					} break;
+
+					case 'com.epicgames.party.joinacknowledged': {
+						
+						let payload = {
 							account_id: stanza.from.local,
 							jid: stanza.from,
 							party_id: body.payload.partyId,
 							time: new Date(body.timestamp)
-						}));
-						break;
+						};
+
+						this.emit('party:joinacknowledged', new PartyJoinAcknowledged(this, payload));
+						this.emit('party#' + payload.party_id + ':joinacknowledged', new PartyJoinAcknowledged(this, payload));
+
+					} break;
+
+					case 'com.epicgames.party.joinacknowledged.response': {
+						
+						let payload = {
+							account_id: stanza.from.local,
+							jid: stanza.from,
+							party_id: body.payload.partyId,
+							time: new Date(body.timestamp)
+						};
+
+						this.emit('party:joinacknowledged:response', new PartyJoinAcknowledgedResponse(this, payload));
+						this.emit('party#' + payload.party_id + ':joinacknowledged:response', new PartyJoinAcknowledgedResponse(this, payload));
+
+					} break;
 
 					case 'FRIENDSHIP_REMOVE':
 						this.emit('friend:removed', new Friend(this.client, {
@@ -477,7 +668,7 @@ class Communicator extends EventEmitter {
 
 			}else if(stanza.type == 'chat') {
 				
-				this.emit('friend:message', new FriendMessage(this.client, {
+				this.emit('friend:message', new FriendMessage(this, {
 					account_id: stanza.from.local,
 					status: 'ACCEPTED', // status for Friend
 					message: stanza.body,

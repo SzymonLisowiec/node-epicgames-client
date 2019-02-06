@@ -17,6 +17,7 @@ class Client extends Events {
 
 		this.app_name = 'Launcher';
 		this.app_xmpp_name = 'launcher';
+		this.library_name = 'epicgames-client';
 
 		this.config = Object.assign({
 			

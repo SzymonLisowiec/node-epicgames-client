@@ -1,14 +1,15 @@
 const User = require('../User');
 
-class PartyJoinAcknowledgedResponse {
+class PartyInvitationResponse {
 
 	constructor (communicator, data) {
 		
 		this.communicator = communicator;
-
+		
 		this.sender = new User(this.communicator.getClient(), data);
-
+		
 		this.party_id = data.party_id;
+		this.response = data.response;
 		
 		this.time = data.time;
 		
@@ -22,10 +23,11 @@ class PartyJoinAcknowledgedResponse {
 
 			body: JSON.stringify({
 
-				type: 'com.epicgames.party.joinacknowledged.response',
+				type: 'com.epicgames.party.invitation.response',
 
 				payload: {
-					partyId: this.party_id
+					partyId: this.party_id,
+					response: this.response
 				},
 
 				timestamp: new Date()
@@ -38,4 +40,4 @@ class PartyJoinAcknowledgedResponse {
 
 }
 
-module.exports = PartyJoinAcknowledgedResponse;
+module.exports = PartyInvitationResponse;

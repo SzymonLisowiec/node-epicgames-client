@@ -1,6 +1,10 @@
 
 # node-epicgames-client
-Unofficial EpicGames Launcher in javascript.
+### Unofficial EpicGames Launcher in javascript.
+[![npm version](https://img.shields.io/npm/v/epicgames-client.svg)](https://npmjs.com/package/epicgames-client)
+[![npm downloads](https://img.shields.io/npm/dm/epicgames-client.svg)](https://npmjs.com/package/epicgames-client)
+[![license](https://img.shields.io/npm/l/epicgames-client.svg)](https://github.com/SzymonLisowiec/node-epicgames-client/blob/master/LICENSE)
+[![paypal](https://img.shields.io/badge/paypal-donate-orange.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FDN57KFYRP4CQ&source=url)
 
 __This library supports only epicgames launcher. If you need fortnite client, check [`node-epicgames-fortnite-client`](https://github.com/SzymonLisowiec/node-epicgames-fortnite-client)__
 

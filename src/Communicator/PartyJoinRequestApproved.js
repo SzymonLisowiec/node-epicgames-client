@@ -21,7 +21,7 @@ class PartyJoinRequestApproved {
 
 		this.members = data.members.map(member => {
 
-			let account_id = member.userId || member.id;
+			let account_id = member.userId || member.id || member.account_id;
 
 			return new User(this.communicator.getClient(), {
 				account_id,

@@ -3,6 +3,7 @@ const User = require('../User');
 const PartyQueryJoinability = require('./PartyQueryJoinability');
 const PartyJoinRequest = require('./PartyJoinRequest');
 const PartyJoinAcknowledged = require('./PartyJoinAcknowledged');
+const PartyJoinAcknowledgedResponse = require('./PartyJoinAcknowledgedResponse');
 const PartyMemberJoined = require('./PartyMemberJoined');
 const PartyMemberExited = require('./PartyMemberExited');
 const PartyMemberData = require('./PartyMemberData');
@@ -13,7 +14,7 @@ const PartyJoinRequestApproved = require('./PartyJoinRequestApproved');
 
 class Party {
 
-	constructor (communicator, data) {
+	constructor (communicator, data, listen) {
 		
 		this.communicator = communicator;
 		this.client = this.communicator.getClient();
@@ -37,8 +38,6 @@ class Party {
 		this.max_members = data.max_members || null;
 
 		this.not_accepting_reason = data.not_accepting_reason;
-		
-		this.time = data.time;
 
 		this.party_data = data.party_data || new PartyData(this.communicator, {
 			account_id: this.client.account.id,
@@ -52,14 +51,89 @@ class Party {
 			party_id: this.id
 		});
 
+		if(listen)
+			this.runListeners();
+
+		this.chat = null;
+		
+	}
+
+	runListeners () {
 		this.listenPartyData();
 		this.listenMemberData();
 		this.listenQueryJoinability();
 		this.listenJoinRequest();
 		this.listenMemberJoined();
 		this.listenMemberExited();
-		
+		this.listenMemberPromoted();
+		this.listenJoinAcknowledged();
 	}
+
+	exit (kicked) {
+
+		this.communicator.removeAllListeners('party#' + this.id + ':data');
+		this.communicator.removeAllListeners('party#' + this.id + ':member:data');
+		this.communicator.removeAllListeners('party#' + this.id + ':member:joined');
+		this.communicator.removeAllListeners('party#' + this.id + ':member:exited');
+		this.communicator.removeAllListeners('party#' + this.id + ':member:promoted');
+		this.communicator.removeAllListeners('party#' + this.id + ':query:joinability');
+		this.communicator.removeAllListeners('party#' + this.id + ':query:joinability:response');
+		this.communicator.removeAllListeners('party#' + this.id + ':join:request');
+		this.communicator.removeAllListeners('party#' + this.id + ':joinacknowledged');
+		this.communicator.removeAllListeners('party#' + this.id + ':joinacknowledged:response');
+		
+		let member_exited = new PartyMemberExited(this.communicator, {
+			account_id: this.client.account.id,
+			display_name: this.client.account.display_name,
+			jid: this.communicator.stream.jid,
+			party_id: this.id,
+			member_id: this.client.account.id,
+			was_kicked: kicked ? true : false
+		});
+
+		this.members.forEach(member => {
+			member_exited.send(member.jid);
+		});
+
+		let member = this.findMemberById(this.client.account.id);
+		this.members.splice(this.members.indexOf(member), 1);
+
+	}
+
+	// async connectToChat () {
+
+	// 	try {
+
+	// 		console.dir('https://fortnite-public-service-prod11.ol.epicgames.com/fortnite/api/game/v2/voice/' + this.client.account.id + '/join/' + this.id);
+	// 		let { data } = await this.communicator.app.http.sendGet('https://fortnite-public-service-prod11.ol.epicgames.com/fortnite/api/game/v2/voice/' + this.client.account.id + '/join/' + this.id);
+
+	// 		this.chat = this.communicator.makeCommunicator(this.communicator.app, 'fnwp.vivox.com', 'fnwp.vivox.com', false);
+
+	// 		this.chat.on('raw:outgoing', xml => {
+	// 			console.log('Chat outgoing');
+	// 			console.dir(xml);
+	// 		});
+
+	// 		this.chat.on('raw:incoming', xml => {
+	// 			console.log('Chat incoming');
+	// 			console.dir(xml);
+	// 		});
+
+	// 		this.chat.on('error', xml => {
+	// 			console.log('Chat error');
+	// 			console.dir(xml);
+	// 		});
+
+	// 		await this.chat.connect(data.token);
+
+	// 	}catch(err){
+
+	// 		console.dir(err);
+	// 		this.client.debug.print(new Error('Cannot conntect to chat!'));
+
+	// 	}
+
+	// }
 
 	findMemberById (id) {
 		return this.members.find(member => {
@@ -98,6 +172,8 @@ class Party {
 		if(typeof jid == 'string')
 			jid = this.communicator.makeJID(jid);
 
+		this.runListeners();
+
 		this.client.debug.print('[Party#' + this.id + '] Asking to join');
 
 		let query_joinability = new PartyQueryJoinability(this.communicator, {
@@ -123,10 +199,18 @@ class Party {
 		this.members = approve.members;
 		this.password = approve.password;
 
+		this.members.push(new User(this.client, {
+			id: this.client.account.id,
+			display_name: this.client.account.display_name,
+			jid: this.communicator.stream.jid
+		}));
+
 		await this.sendJoinAcknowledged(approve);
 		await this.waitForJoinAcknowledgedResponse();
 
 		await this.waitForPartyData();
+
+		this.client.party = this;
 
 	}
 	
@@ -156,9 +240,19 @@ class Party {
 		});
 	}
 
+	async listenMemberPromoted () {
+		this.communicator.on('party#' + this.id + ':member:promoted', promoted => {
+
+			this.leader = promoted.member.id;
+
+		});
+	}
+
 	async listenQueryJoinability () {
 		
 		this.communicator.on('party#' + this.id + ':query:joinability', query => {
+
+			this.client.debug.print('[Party#' + this.id + '] Received joinability query from ' + query.sender.id + '!');
 
 			if(this.leader === null)
 				return;
@@ -167,16 +261,20 @@ class Party {
 
 			if(this.leader === this.client.account.id){
 
+				this.client.debug.print('[Party#' + this.id + '] You can join ' + query.sender.id + '!');
+
 				response = new PartyQueryJoinabilityResponse(this.communicator, {
 					party_id: this.id,
 					account_id: this.client.account.id,
 					display_name: this.client.account.display_name,
 					is_joinable: true,
-					rejection_type: 2,
+					rejection_type: 0,
 					result_param: ''
 				});
 
 			}else{
+
+				this.client.debug.print('[Party#' + this.id + '] I\'m not a leader, redirect ' + query.sender.id + ' to ' + this.leader + '!');
 
 				response = new PartyQueryJoinabilityResponse(this.communicator, {
 					party_id: this.id,
@@ -214,7 +312,13 @@ class Party {
 				not_accepting_member_reason: this.not_accepting_member_reason,
 				max_members: this.max_members,
 				password: this.password,
-				members: this.members
+				members: this.members.map(member => {
+					return {
+						id: member.id,
+						display_name: member.display_name,
+						xmppResource: member.jid.resource
+					};
+				})
 			});
 	
 			approve.send(request.sender.jid);
@@ -235,7 +339,7 @@ class Party {
 				display_name: request.sender.display_name,
 				jid: request.sender.jid
 			}));
-
+			
 			this.members.forEach(member => {
 				member_joined.send(member.jid);
 			});
@@ -268,6 +372,12 @@ class Party {
 		
 		this.communicator.on('party#' + this.id + ':member:exited', exited => {
 
+			
+			if(exited.member.id == this.client.account.id){
+				this.exit(exited.was_kicked);
+				return;
+			}
+
 			let member = this.findMemberById(exited.member.id);
 			this.members.splice(this.members.indexOf(member), 1);
 
@@ -275,11 +385,28 @@ class Party {
 
 	}
 
+	async listenJoinAcknowledged (join_acknowledged) {
+
+		this.communicator.on('party#' + this.id + ':joinacknowledged', async join_acknowledged => {
+
+			let join_acknowledged_response = new PartyJoinAcknowledgedResponse(this.communicator, {
+				account_id: this.client.account.id,
+				display_name: this.client.account.display_name,
+				party_id: this.id
+			});
+
+			await join_acknowledged_response.send(join_acknowledged.sender.jid);
+
+		});
+
+	}
+
 	waitForJoinabilityResponse () {
+
 		return new Promise((resolve, reject) => {
 			
 			this.communicator.once('party#' + this.id + ':queryjoinability:response', async response => {
-				
+
 				if(!response.is_joinable){
 
 					switch (response.rejection_type) {
@@ -290,7 +417,7 @@ class Party {
 
 							this.client.debug.print('[Party#' + this.id + '] Asked jid isn\'t leader, redirecting to leader: ' + leader_jid);
 
-							resolve(await this.askToJoin(leader_jid));
+							resolve(this.askToJoin(leader_jid));
 							
 						} break;
 

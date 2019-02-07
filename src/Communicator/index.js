@@ -27,7 +27,7 @@ const PartyUpdateConfirmation = require('./PartyUpdateConfirmation');
 
 class Communicator extends EventEmitter {
 
-	constructor (app, extensions) {
+	constructor (app, host, url, resource) {
 		super();
 		
 		this.app = app;
@@ -36,9 +36,9 @@ class Communicator extends EventEmitter {
 			this.client = this.app;
 		else this.client = this.app.launcher;
 		
-		this.resource = 'V2:' + this.app.app_xmpp_name + ':WIN::' + this.generateUUID();
-
-		this.extensions = extensions || {};
+		this.resource = resource === false ? false : 'V2:' + this.app.app_xmpp_name + ':WIN::' + this.generateUUID();
+		this.host = host || 'prod.ol.epicgames.com';
+		this.url = url || 'xmpp-service-prod.ol.epicgames.com';
 
 	}
 
@@ -86,6 +86,8 @@ class Communicator extends EventEmitter {
 			]
 		});
 
+		party.runListeners();
+
 		let properties = {};
 
 		properties['party.joininfodata.' + party.type_id + '_j'] = {
@@ -122,6 +124,8 @@ class Communicator extends EventEmitter {
 			})
 		});
 
+		this.party = party;
+
 		return party;
 	}
 
@@ -130,13 +134,13 @@ class Communicator extends EventEmitter {
 
 			this.stream = new StanzaIO.createClient({
 
-				wsURL: 'wss://xmpp-service-prod.ol.epicgames.com',
+				wsURL: 'wss://' + this.url,
 				transport: 'websocket',
-				server: 'prod.ol.epicgames.com',
+				server: this.host,
 	
 				credentials: {
-					jid: this.client.account.id + '@prod.ol.epicgames.com',
-					host: 'prod.ol.epicgames.com',
+					jid: this.client.account.id + '@' + this.host,
+					host: this.host,
 					username: this.client.account.id,
 					password: auth_token || this.client.account.auth.access_token
 				},
@@ -693,7 +697,7 @@ class Communicator extends EventEmitter {
 
 	sendMessage (to, message) {
 
-		to = to + '@prod.ol.epicgames.com';
+		to = to + '@' + this.host;
 
 		this.sendRequest({
 			to: new StanzaIO.JID(to),

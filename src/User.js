@@ -33,6 +33,9 @@ class User {
 
 		this.jid = data.jid || null;
 
+		if(!this.jid && this.client.communicator)
+			this.jid = this.id + '@' + this.client.communicator.host;
+
 		this.display_name = data.account_name || data.display_name || null;
 		this.account_name = this.display_name; // backward compatibility
 

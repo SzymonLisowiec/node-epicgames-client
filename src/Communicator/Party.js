@@ -76,7 +76,7 @@ class Party extends EventEmitter {
 
     const party = new this(communicator, {
       partyId,
-      partyTypeId: options.typeId, // 286331153
+      partyTypeId: options.typeId || options.partyTypeId,
       accessKey: communicator.generateUUID(),
       partyFlags: options.partyFlags,
       notAcceptingMemberReason: options.notAcceptingMemberReason,
@@ -85,8 +85,8 @@ class Party extends EventEmitter {
       presencePermissions: options.presencePermissions,
       invitePermissions: options.invitePermissions,
       leader: communicator.client.account.id,
-      appId: options.appId, // 'Fortnite'
-      buildId: options.buildId, // 4691381
+      appId: options.appId,
+      buildId: options.buildId,
       members: [
         {
           accountId: communicator.client.account.id,

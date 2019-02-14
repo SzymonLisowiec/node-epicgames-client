@@ -14,8 +14,6 @@ class PartyMember extends User {
       partyId: this.party.id,
     });
     
-    this.time = data.time;
-    
   }
 
   async setReady(isReady) {

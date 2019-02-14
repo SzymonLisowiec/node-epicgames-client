@@ -42,13 +42,14 @@ let client = new Client({
 
 # TODO
 - [x] Better documentation
-- [ ] Code refactoring
+- [x] Code refactoring
+- [ ] More code refactoring
 - [ ] Support for in-lobby communication
 - [ ] Implement support for all endpoints
-- [ ] Better OOP
 
 # Documentation (in progress)
 - [Home](https://github.com/SzymonLisowiec/node-epicgames-client/wiki)
+- [Enums](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Enums)
 - [Client](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Client)
 - [Communicator](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator)
 - [User](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/User)
@@ -58,6 +59,7 @@ let client = new Client({
 - [Communicator\FriendMessage](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CFriendMessage)
 - [Communicator\Party](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CParty)
 - [Communicator\PartyData](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyData)
+- [Communicator\PartyMember](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyMember)
 - [Communicator\PartyMemberData](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyMemberData)
 - [Communicator\PartyInvitation](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyInvitation)
 

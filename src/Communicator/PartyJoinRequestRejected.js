@@ -2,57 +2,56 @@ const User = require('../User');
 
 class PartyJoinRequestRejected {
 
-	constructor (communicator, data) {
-		
-		this.communicator = communicator;
+  constructor(communicator, data) {
+    
+    this.communicator = communicator;
 
-		this.sender = new User(this.communicator.getClient(), data);
+    this.sender = new User(this.communicator.getClient(), data);
 
-		this.party_id = data.party_id;
-		this.access_key = data.access_key;
+    this.partyId = data.partyId;
+    this.accessKey = data.accessKey;
 
-		this.platform = data.platform || '';
+    this.platform = data.platform || '';
 
-		this.app_id = data.app_id;
-		this.build_id = data.build_id;
+    this.appId = data.appId;
+    this.buildId = data.buildId;
 
-		this.join_data = data.join_data || null;
-		
-		this.time = data.time;
-		
-	}
+    this.joinData = data.joinData || null;
+    
+    this.time = data.time;
+    
+  }
 
-	send (to) {
+  send(to) {
 
-		let payload = {
-			partyId: this.party_id,
-			accessKey: this.access_key,
-			displayName: this.sender.display_name,
-			platform: this.platform,
-			appid: this.app_id,
-			buildid: this.build_id
-		};
+    const payload = {
+      partyId: this.partyId,
+      accessKey: this.accessKey,
+      displayName: this.sender.displayName,
+      platform: this.platform,
+      appid: this.appId,
+      buildid: this.buildId,
+    };
 
-		if(this.join_data)
-			payload.joinData = this.join_data;
+    if (this.joinData) payload.joinData = this.joinData;
 
-		return this.communicator.sendRequest({
+    return this.communicator.sendRequest({
 
-			to,
+      to,
 
-			body: JSON.stringify({
+      body: JSON.stringify({
 
-				type: 'com.epicgames.party.joinrequest',
+        type: 'com.epicgames.party.joinrequest',
 
-				payload,
+        payload,
 
-				timestamp: new Date()
+        timestamp: new Date(),
 
-			})
+      }),
 
-		});
+    });
 
-	}
+  }
 
 }
 

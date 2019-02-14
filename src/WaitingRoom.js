@@ -1,71 +1,60 @@
-const Client = require('./Client');
-
-
 class WaitingRoom {
 
-	/**
-	 * EpicGames use the waiting room to optymalization traffic.
-	 * @param {string} url - The launcher and every game have separate waiting room's domain.
-	 * @param {Client} launcher
-	 */
-	constructor (url, http) {
+  constructor(client, url) {
 
-		this.url = url;
-		this.http = http;
-		this.mcp_version = null; // I don't know, what is "mcp".
+    this.client = client;
+    this.url = url;
+    this.http = this.client.http;
+    this.MPCVersion = null;
 
-	}
+  }
 
-	/**
-	 * @return Do We need to wait before next step?
-	 */
-	async needWait () {
+  async needWait() {
 
-		return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
 
-			this.http.request({
+      this.http.request({
 
-				url: this.url,
+        url: this.url,
 
-				headers: {
-					'Accept': '*/*',
-					'User-Agent': this.http.getUserAgent('launcher-service')
-				},
+        headers: {
+          Accept: '*/*',
+          'User-Agent': this.http.getUserAgent('launcher-service'),
+        },
 
-				json: true
+        json: true,
 
-			}, (err, response, body) => {
+      }, (err, response, body) => {
 
-				if(err){
+        if (err) {
 
-					reject(err);
+          reject(err);
 
-				}else{
+        } else {
 
-					this.mcp_version = response.headers['x-epicgames-mcpversion'];
+          this.MPCVersion = response.headers['x-epicgames-mcpversion'];
 
-					if(body){
+          if (body) {
 
-						resolve({
-							ticket_id: body.ticketId,
-							expected_wait: body.expectedWait,
-							retry_time: body.retryTime
-						});
-						
-					}else resolve(false);
-					
-				}
+            resolve({
+              ticketId: body.ticketId,
+              expectedWait: body.expectedWait,
+              retryTime: body.retryTime,
+            });
+            
+          } else resolve(false);
+          
+        }
 
-			});
+      });
 
-		}).catch(err => {
+    }).catch(() => {
 
-			console.log('Error while sending query to the waiting room.');
-			console.log(err);
+      this.debug.print('Error while sending query to the waiting room.');
 
-		});
-		
-	}
+    });
+    
+  }
 
 }
 

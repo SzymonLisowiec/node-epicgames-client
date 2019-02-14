@@ -1,60 +1,67 @@
 class User {
 
-	constructor (client, data) {
+  constructor(client, data) {
 
-		this.client = client;
-		
-		if(typeof data != 'object'){
-			
-			if(data === 'me'){
+    this.client = client;
+    
+    if (typeof data !== 'object') {
+      
+      if (data === 'me') {
 
-				data = {
-					account_id: this.client.account.id,
-					display_name: this.client.account.display_name
-				}
+        data = {
+          accountId: this.client.account.id,
+          displayName: this.client.account.displayName,
+        };
 
-			}else{
+      } else {
 
-				data = {
-					account_id: data
-				};
+        data = {
+          accountId: data,
+        };
 
-			}
+      }
 
-		}
-		
-		this.id = data.account_id || data.id;
-		this.account_id = this.id; // backward compatibility
+    }
+    
+    this.id = data.accountId || data.id;
 
-		if(!this.id){
-			console.dir(data);
-			throw new Error('Trying of initialize User without account id. Provided data above.');
-		}
+    if (!this.id) {
+      throw new Error('Trying of initialize User without account id. Provided data above.');
+    }
 
-		this.jid = data.jid || null;
+    this.jid = data.jid || null;
 
-		if(!this.jid && this.client.communicator)
-			this.jid = this.id + '@' + this.client.communicator.host;
+    if (!this.jid && this.client.communicator) {
 
-		this.display_name = data.account_name || data.display_name || null;
-		this.account_name = this.display_name; // backward compatibility
+      this.jid = `${this.id}@${this.client.communicator.host}`;
+      if (data.xmppResource) this.jid = `${this.jid}/${data.xmppResource}`;
+      
+    }
 
-		this.external_auths = this.external_auths || [];
+    this.displayName = data.accountName || null;
 
-	}
+    this.externalAuths = this.externalAuths || [];
 
-	static async get (client, user) {
-		
-		if(typeof user == 'string' && client.isDisplayName(user)){
+  }
 
-			let account = await client.lookup(user);
-			if(account)
-				return new this(client, account);
-			else return false;
+  update(data) {
+    this.displayName = data.displayName || data.accountName || this.displayName;
+    this.jid = data.jid;
+    this.externalAuths = data.externalAuths || [];
+  }
 
-		}else return new this(client, user);
+  static async get(client, user) {
+    
+    if (typeof user === 'string' && client.isDisplayName(user)) {
 
-	}
+      const account = await client.lookup(user);
+      if (account) return new this(client, account);
+      return false;
+
+    }
+    
+    return new this(client, user);
+  }
 
 }
 

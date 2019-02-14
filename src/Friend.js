@@ -2,53 +2,45 @@ const User = require('./User');
 
 class Friend extends User {
 
-	constructor (client, data) {
-		super(client, data);
-		
-		this.status = data.status || 'UNDEFINED'; // UNDEFINED, PENDING, ACCEPTED, BLOCKED, REMOVED
+  constructor(client, data) {
+    super(client, data);
+    
+    this.status = data.status || 'UNDEFINED'; // UNDEFINED, PENDING, ACCEPTED, BLOCKED, REMOVED
 
-		this.last_action_at = data.time || this.last_action_at || null;
-		this.time = this.last_action_at;  // backward compatibility
+    this.lastActionAt = data.time || this.lastActionAt || null;
 
-		this.favorite = data.favorite || undefined;
+    this.favorite = data.favorite || undefined;
+    
+  }
 
-		/**
-		 * backward compatibility for getFriends() method:
-		 */
-		this.direction = data.direction;
-		this.created = data.created;
-		
-	}
+  static async invite(client, accountId) {
 
-	static async invite (client, account_id) {
+    if (await client.inviteFriend(accountId)) {
 
-		if(await client.inviteFriend(account_id)){
+      return new this(client, {
+        accountId,
+        status: 'PENDING',
+        lastActionAt: new Date(),
+      });
 
-			return new this(client, {
-				account_id: account_id,
-				status: 'PENDING',
-				last_action_at: new Date()
-			});
+    }
 
-		}
+    return false;
+  }
 
-		return false;
-	}
+  async remove() {
+    
+    if (await this.client.removeFriend(this.id)) {
 
-	async remove () {
-		
-		if(await this.client.removeFriend(this.account_id)){
+      this.status = 'REMOVED';
 
-			this.status = 'REMOVED';
+      this.lastActionAt = new Date();
 
-			this.last_action_at = new Date();
-			this.time = new Date();  // backward compatibility
+      return true;
+    }
 
-			return true;
-		}
-
-		return false;
-	}
+    return false;
+  }
 
 }
 

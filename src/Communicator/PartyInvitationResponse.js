@@ -2,41 +2,41 @@ const User = require('../User');
 
 class PartyInvitationResponse {
 
-	constructor (communicator, data) {
-		
-		this.communicator = communicator;
-		
-		this.sender = new User(this.communicator.getClient(), data);
-		
-		this.party_id = data.party_id;
-		this.response = data.response;
-		
-		this.time = data.time;
-		
-	}
+  constructor(communicator, data) {
+    
+    this.communicator = communicator;
+    
+    this.sender = new User(this.communicator.getClient(), data);
+    
+    this.partyId = data.partyId;
+    this.response = data.response;
+    
+    this.time = data.time;
+    
+  }
 
-	send (to) {
+  send(to) {
 
-		return this.communicator.sendRequest({
+    return this.communicator.sendRequest({
 
-			to,
+      to,
 
-			body: JSON.stringify({
+      body: JSON.stringify({
 
-				type: 'com.epicgames.party.invitation.response',
+        type: 'com.epicgames.party.invitation.response',
 
-				payload: {
-					partyId: this.party_id,
-					response: this.response
-				},
+        payload: {
+          partyId: this.partyId,
+          response: this.response,
+        },
 
-				timestamp: new Date()
+        timestamp: new Date(),
 
-			})
+      }),
 
-		});
+    });
 
-	}
+  }
 
 }
 

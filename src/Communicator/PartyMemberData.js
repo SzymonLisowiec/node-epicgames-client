@@ -1,283 +1,380 @@
 const User = require('../User');
+const EInputType = require('../../enums/InputType');
 
 class PartyMemberData {
 
-	constructor (communicator, data) {
-		
-		this.communicator = communicator;
+  constructor(communicator, data) {
+    
+    this.communicator = communicator;
 
-		this.sender = new User(this.communicator.getClient(), data);
+    this.sender = new User(this.communicator.getClient(), data);
 
-		this.party_id = data.party_id;
+    this.partyId = data.partyId;
 
-		// TODO: data.payload
-		this.payload = data.payload || this.makePayload();
-		
-		this.time = data.time;
-		
-	}
+    this.payload = data.payload || this.makePayload();
+    
+    this.time = data.time;
 
-	send (to) {
+    this.rev = 0;
+    
+  }
 
-		return this.communicator.sendRequest({
+  send(to) {
+    
+    this.rev += 1;
+    this.payload.Rev = this.rev;
 
-			to,
+    return this.communicator.sendRequest({
 
-			body: JSON.stringify({
+      to,
 
-				type: 'com.epicgames.party.memberdata',
+      body: JSON.stringify({
 
-				payload: {
-					partyId: this.party_id,
-					payload: this.payload
-				},
+        type: 'com.epicgames.party.memberdata',
 
-				timestamp: new Date()
+        payload: {
+          partyId: this.partyId,
+          payload: this.payload,
+        },
 
-			})
+        timestamp: new Date(),
 
-		});
+      }),
 
-	}
+    });
 
-	sendPart (part, to) {
+  }
 
-		return this.communicator.sendRequest({
+  sendPart(part, to) {
 
-			to,
+    this.rev += 1;
+    part.Rev = this.rev;
 
-			body: JSON.stringify({
+    return this.communicator.sendRequest({
 
-				type: 'com.epicgames.party.memberdata',
+      to,
 
-				payload: {
-					partyId: this.party_id,
-					payload: part
-				},
+      body: JSON.stringify({
 
-				timestamp: new Date()
+        type: 'com.epicgames.party.memberdata',
 
-			})
+        payload: {
+          partyId: this.partyId,
+          payload: part,
+        },
 
-		});
+        timestamp: new Date(),
 
-	}
-	
-	setReady (is_ready, jid) {
+      }),
 
-		this.payload.Attrs.FrontendEmote_j.IsReadyAthena_b = is_ready;
-		
-		let part = {
+    });
 
-			Rev: 1,
-			
-			Attrs: {
-				IsReadyAthena_b: this.payload.Attrs.IsReadyAthena_b,
-				ReadyInputType_s: this.payload.Attrs.ReadyInputType_s
-			}
+  }
+  
+  setReady(isReady, jid) {
 
-		};
+    this.payload.Attrs.FrontendEmote_j.IsReadyAthena_b = isReady;
+    
+    const part = {
+      
+      Attrs: {
+        IsReadyAthena_b: this.payload.Attrs.IsReadyAthena_b,
+        ReadyInputType_s: this.payload.Attrs.ReadyInputType_s,
+      },
 
-		if(!jid)
-			return false;
+    };
 
-		if(Array.isArray(jid)){
-			jid.forEach(j => this.sendPart(part, j));
-		}else this.sendPart(part, jid);
+    if (!jid) return false;
 
-	}
+    if (Array.isArray(jid)) {
+      jid.forEach(j => this.sendPart(part, j));
+    } else this.sendPart(part, jid);
 
-	setEmote (emote_asset, jid) { // emote_asset e.g. /Game/Athena/Items/Cosmetics/Dances/EID_KPopDance01.EID_KPopDance01
+    return true;
+  }
 
-		this.payload.Attrs.FrontendEmote_j.FrontendEmote = {
-			emoteItemDef: 'AthenaDanceItemDefinition\'' + emote_asset + '\'',
-			emoteItemDefEncryptionKey: '',
-			emoteSection: -2
-		};
+  setEmote(emoteAsset, jid) {
 
-		let part = {
+    this.payload.Attrs.FrontendEmote_j.FrontendEmote = {
+      emoteItemDef: `AthenaDanceItemDefinition'${emoteAsset}'`,
+      emoteItemDefEncryptionKey: '',
+      emoteSection: -2,
+    };
 
-			Rev: 1,
-			
-			Attrs: {
-				FrontendEmote_j: this.payload.Attrs.FrontendEmote_j,
-			}
+    const part = {
+      
+      Attrs: {
+        FrontendEmote_j: this.payload.Attrs.FrontendEmote_j,
+      },
+
+    };
+
+    if (!jid) return false;
+
+    if (Array.isArray(jid)) {
+      jid.forEach(j => this.sendPart(part, j));
+    } else this.sendPart(part, jid);
+
+    return true;
+  }
+
+  clearEmote(jid) {
+
+    this.payload.Attrs.FrontendEmote_j.FrontendEmote = {
+      emoteItemDef: 'None',
+      emoteItemDefEncryptionKey: '',
+      emoteSection: -1,
+    };
+    
+    const part = {
+      
+      Attrs: {
+        FrontendEmote_j: this.payload.Attrs.FrontendEmote_j,
+      },
+
+    };
+
+    if (!jid) return false;
+
+    if (Array.isArray(jid)) {
+      jid.forEach(j => this.sendPart(part, j));
+    } else this.sendPart(part, jid);
+
+    return true;
+  }
+
+  setBRCharacter(characterAsset, jid) {
+
+    this.payload.Attrs.AthenaCosmeticLoadout_j.AthenaCosmeticLoadout.characterDefinition = `AthenaCharacterItemDefinition'${characterAsset}'`;
+      
+    const part = {
+      
+      Attrs: {
+        CampaignHero_j: this.payload.Attrs.CampaignHero_j,
+        AthenaCosmeticLoadout_j: this.payload.Attrs.AthenaCosmeticLoadout_j,
+      },
+
+    };
+
+    if (!jid) return false;
+
+    if (Array.isArray(jid)) {
+      jid.forEach(j => this.sendPart(part, j));
+    } else this.sendPart(part, jid);
+
+    return true;
+  }
+
+  /**
+   * This method currently not working.
+   */
+  setBRBanner(id, color, seasonLevel, jid) {
+
+    this.payload.Attrs.AthenaBannerInfo_j.AthenaBannerInfo = {
+      bannerIconId: id,
+      bannerColorId: color,
+      seasonLevel,
+    };
+
+    this.payload.Attrs.HomeBaseVersion_U = parseInt(this.payload.Attrs.HomeBaseVersion_U, 10) + 1;
+    this.payload.Attrs.HomeBaseVersion_U = this.payload.Attrs.HomeBaseVersion_U.toString();
+    
+    const part = {
+      
+      Attrs: {
+        HomeBaseVersion_U: this.payload.Attrs.HomeBaseVersion_U,
+        AthenaBannerInfo_j: this.payload.Attrs.AthenaBannerInfo_j,
+      },
+
+    };
+
+    if (!jid) return false;
+
+    if (Array.isArray(jid)) {
+      jid.forEach(j => this.sendPart(part, j));
+    } else this.sendPart(part, jid);
+
+    return true;
+  }
+  
+  setInputType(inputType, jid) {
+    
+    switch (inputType) {
+
+      case EInputType.MouseAndKeyboard:
+        this.payload.Attrs.CurrentInputType_s = 'MouseAndKeyboard';
+        break;
+
+      case EInputType.Controller:
+        this.payload.Attrs.CurrentInputType_s = 'Pad';
+        break;
+
+      case EInputType.Touch:
+        this.payload.Attrs.CurrentInputType_s = 'Touch';
+        break;
+
+      default:
+        this.payload.Attrs.CurrentInputType_s = 'MouseAndKeyboard';
+
+    }
+    
+    const part = {
+      
+      Attrs: {
+        CurrentInputType_s: this.payload.Attrs.CurrentInputType_s,
+      },
 
-		};
+    };
+
+    if (!jid) return false;
 
-		if(!jid)
-			return false;
+    if (Array.isArray(jid)) {
+      jid.forEach(j => this.sendPart(part, j));
+    } else this.sendPart(part, jid);
 
-		if(Array.isArray(jid)){
-			jid.forEach(j => this.sendPart(part, j));
-		}else this.sendPart(part, jid);
+    return true;
+  }
+  
+  setBattlePass(show, passLevel, selfBoostXp, friendBoostXp, jid) {
 
-	}
+    this.payload.Attrs.BattlePassInfo_j = {
+      BattlePassInfo: {
+        bHasPurchasedPass: !!show,
+        passLevel,
+        selfBoostXp,
+        friendBoostXp,
+      },
+    };
+    
+    const part = {
+      
+      Attrs: {
+        BattlePassInfo_j: this.payload.Attrs.BattlePassInfo_j,
+      },
 
-	clearEmote (jid) {
+    };
 
-		this.payload.Attrs.FrontendEmote_j.FrontendEmote = {
-			emoteItemDef: 'None',
-			emoteItemDefEncryptionKey: '',
-			emoteSection: -1
-		};
-		
-		let part = {
+    if (!jid) return false;
 
-			Rev: 2,
-			
-			Attrs: {
-				FrontendEmote_j: this.payload.Attrs.FrontendEmote_j,
-			}
+    if (Array.isArray(jid)) {
+      jid.forEach(j => this.sendPart(part, j));
+    } else this.sendPart(part, jid);
 
-		};
+    return true;
+  }
 
-		if(!jid)
-			return false;
+  makePayload() {
 
-		if(Array.isArray(jid)){
-			jid.forEach(j => this.sendPart(part, j));
-		}else this.sendPart(part, jid);
+    const defaultCharacters = [
+      'CID_001_Athena_Commando_F_Default.CID_001_Athena_Commando_F_Default',
+      'CID_002_Athena_Commando_F_Default.CID_002_Athena_Commando_F_Default',
+      'CID_003_Athena_Commando_F_Default.CID_003_Athena_Commando_F_Default',
+      'CID_004_Athena_Commando_F_Default.CID_004_Athena_Commando_F_Default',
+      'CID_005_Athena_Commando_M_Default.CID_005_Athena_Commando_M_Default',
+      'CID_006_Athena_Commando_M_Default.CID_006_Athena_Commando_M_Default',
+      'CID_007_Athena_Commando_M_Default.CID_007_Athena_Commando_M_Default',
+      'CID_008_Athena_Commando_M_Default.CID_008_Athena_Commando_M_Default',
+    ];
 
-	}
+    const character = defaultCharacters[Math.floor(Math.random() * defaultCharacters.length)];
 
+    return {
 
-	setBRCharacter (character_asset, jid) { // character_asset e.g. /Game/Athena/Items/Cosmetics/Characters/CID_342_Athena_Commando_M_StreetRacerMetallic.CID_342_Athena_Commando_M_StreetRacerMetallic
+      Rev: 0,
 
-		this.payload.Attrs.AthenaCosmeticLoadout_j.AthenaCosmeticLoadout.characterDefinition = '\AthenaCharacterItemDefinition\'' + character_asset + '\'';
-		
-		let part = {
+      Attrs: {
+        
+        Location_s: 'PreLobby',
 
-			Rev: 3,
-			
-			Attrs: {
-				CampaignHero_j: this.payload.Attrs.CampaignHero_j,
-				AthenaCosmeticLoadout_j: this.payload.Attrs.AthenaCosmeticLoadout_j
-			}
+        CampaignHero_j: { // PVE CHARACTER LOADOUT
+          CampaignHero: {
+            heroItemInstanceId: '',
+            heroType: `AthenaCharacterItemDefinition'/Game/Athena/Items/Cosmetics/Characters/${character}'`,
+          },
+        },
 
-		};
+        MatchmakingLevel_U: '0',
+        ZoneInstanceId_s: '',
+        HomeBaseVersion_U: '1',
+        HasPreloadedAthena_b: false,
 
-		if(!jid)
-			return false;
+        FrontendEmote_j: {
 
-		if(Array.isArray(jid)){
-			jid.forEach(j => this.sendPart(part, j));
-		}else this.sendPart(part, jid);
+          FrontendEmote: {
 
-	}
+            emoteItemDef: 'None',
+            emoteItemDefEncryptionKey: '',
+            emoteSection: -1,
 
-	makePayload () {
+          },
 
-		let default_characters = [
-			'CID_001_Athena_Commando_F_Default.CID_001_Athena_Commando_F_Default',
-			'CID_002_Athena_Commando_F_Default.CID_002_Athena_Commando_F_Default',
-			'CID_003_Athena_Commando_F_Default.CID_003_Athena_Commando_F_Default',
-			'CID_004_Athena_Commando_F_Default.CID_004_Athena_Commando_F_Default',
-			'CID_005_Athena_Commando_M_Default.CID_005_Athena_Commando_M_Default',
-			'CID_006_Athena_Commando_M_Default.CID_006_Athena_Commando_M_Default',
-			'CID_007_Athena_Commando_M_Default.CID_007_Athena_Commando_M_Default',
-			'CID_008_Athena_Commando_M_Default.CID_008_Athena_Commando_M_Default',
-		];
+        },
 
-		let character = default_characters[Math.floor(Math.random() * default_characters.length)];
+        NumAthenaPlayersLeft_U: '0',
+        UtcTimeStartedMatchAthena_s: new Date('0001-01-01T00:00:00.000Z'),
+        IsReadyAthena_b: false,
+        HiddenMatchmakingDelayMax_U: '0',
+        ReadyInputType_s: 'Count',
+        CurrentInputType_s: 'MouseAndKeyboard',
 
-		return {
+        AthenaCosmeticLoadout_j: { // BR CHARACTER LOADOUT
 
-			Rev: 4,
+          AthenaCosmeticLoadout: {
 
-			Attrs: {
-				
-				Location_s: 'PreLobby',
+            characterDefinition: `AthenaCharacterItemDefinition'/Game/Athena/Items/Cosmetics/Characters/${character}'`,
 
-				CampaignHero_j: { // PVE CHARACTER LOADOUT
-					CampaignHero: {
-						heroItemInstanceId: '',
-						heroType: 'AthenaCharacterItemDefinition\'/Game/Athena/Items/Cosmetics/Characters/' + character + '\''
-					}
-				},
+            characterDefinitionEncryptionKey: '',
+            backpackDefinition: 'None',
 
-				MatchmakingLevel_U: '0',
-				ZoneInstanceId_s: '',
-				HomeBaseVersion_U: '1',
-				HasPreloadedAthena_b: false,
+            backpackDefinitionEncryptionKey: '',
 
-				FrontendEmote_j: {
+            pickaxeDefinition: 'AthenaPickaxeItemDefinition\'/Game/Athena/Items/Cosmetics/Pickaxes/DefaultPickaxe.DefaultPickaxe\'',
+            pickaxeDefinitionEncryptionKey: '',
 
-					FrontendEmote: {
+            cosmeticVariants: [],
 
-						emoteItemDef: 'None',
-						emoteItemDefEncryptionKey: '',
-						emoteSection:-1
+          },
 
-					}
+        },
 
-				},
+        AthenaBannerInfo_j: {
 
-				NumAthenaPlayersLeft_U: '0',
-				UtcTimeStartedMatchAthena_s: new Date('0001-01-01T00:00:00.000Z'),
-				IsReadyAthena_b: false,
-				HiddenMatchmakingDelayMax_U: '0',
-				ReadyInputType_s: 'Count',
-				CurrentInputType_s: 'MouseAndKeyboard',
+          AthenaBannerInfo: {
 
-				AthenaCosmeticLoadout_j: { // BR CHARACTER LOADOUT
+            bannerIconId: 'standardbanner15',
+            bannerColorId: 'defaultcolor15',
+            seasonLevel: 1,
 
-					AthenaCosmeticLoadout: {
+          },
 
-						characterDefinition: '\AthenaCharacterItemDefinition\'/Game/Athena/Items/Cosmetics/Characters/' + character + '\'',
+        },
 
-						characterDefinitionEncryptionKey: '',
-						backpackDefinition: 'None',
+        BattlePassInfo_j: {
 
-						backpackDefinitionEncryptionKey: '',
+          BattlePassInfo: {
+            
+            bHasPurchasedPass: false,
+            passLevel: 999999999,
+            selfBoostXp: 99999,
+            friendBoostXp: 99999,
 
-						pickaxeDefinition: 'AthenaPickaxeItemDefinition\'/Game/Athena/Items/Cosmetics/Pickaxes/DefaultPickaxe.DefaultPickaxe\'',
-						pickaxeDefinitionEncryptionKey: '',
+          },
+        },
 
-						cosmeticVariants: []
+        Platform_j: {
+          Platform: {
+            platformStr: 'WIN',
+          },
+        },
 
-					}
+        PlatformUniqueId_s: 'INVALID',
+        PlatformSessionId_s: '',
+        CrossplayPreference_s: 'OptedIn',
 
-				},
+      },
 
-				AthenaBannerInfo_j: {
-
-					AthenaBannerInfo: {
-
-						bannerIconId: 'standardbanner15',
-						bannerColorId: 'defaultcolor15',
-						seasonLevel: 1
-
-					}
-
-				},
-
-				BattlePassInfo_j: {
-
-					BattlePassInfo: {
-						
-						bHasPurchasedPass: true,
-						passLevel: 999999999,
-						selfBoostXp: 99999,
-						friendBoostXp: 99999
-
-					}
-				},
-
-				Platform_j: {
-					Platform: {
-						platformStr: 'WIN'
-					}
-				},
-
-				PlatformUniqueId_s: 'INVALID',
-				PlatformSessionId_s: '',
-				CrossplayPreference_s: 'OptedIn'
-
-			}
-
-		};
-	}
+    };
+  }
 
 }
 

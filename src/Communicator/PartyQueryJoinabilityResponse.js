@@ -2,46 +2,46 @@ const User = require('../User');
 
 class PartyQueryJoinabilityResponse {
 
-	constructor (communicator, data) {
-		
-		this.communicator = communicator;
+  constructor(communicator, data) {
+    
+    this.communicator = communicator;
 
-		this.sender = new User(this.communicator.getClient(), data);
+    this.sender = new User(this.communicator.getClient(), data);
 
-		this.party_id = data.party_id;
-		this.is_joinable = data.is_joinable;
+    this.partyId = data.partyId;
+    this.isJoinable = data.isJoinable;
 
-		this.rejection_type = data.rejection_type;
-		this.result_param = data.result_param; // invite from host = empty; invite from non-host = host account_id
-		
-		this.time = data.time;
-		
-	}
+    this.rejectionType = data.rejectionRype;
+    this.resultParam = data.resultParam;
+    
+    this.time = data.time;
+    
+  }
 
-	send (to) {
+  send(to) {
 
-		return this.communicator.sendRequest({
+    return this.communicator.sendRequest({
 
-			to,
+      to,
 
-			body: JSON.stringify({
+      body: JSON.stringify({
 
-				type: 'com.epicgames.party.queryjoinability.response',
+        type: 'com.epicgames.party.queryjoinability.response',
 
-				payload: {
-					partyId: this.party_id,
-					isJoinable: this.is_joinable,
-					rejectionType: this.rejection_type,
-					resultParam: this.result_param
-				},
+        payload: {
+          partyId: this.partyId,
+          isJoinable: this.isJoinable,
+          rejectionType: this.rejectionType,
+          resultParam: this.resultParam,
+        },
 
-				timestamp: new Date()
+        timestamp: new Date(),
 
-			})
+      }),
 
-		});
+    });
 
-	}
+  }
 
 }
 

@@ -2,39 +2,39 @@ const User = require('../User');
 
 class PartyJoinAcknowledgedResponse {
 
-	constructor (communicator, data) {
-		
-		this.communicator = communicator;
+  constructor(communicator, data) {
+    
+    this.communicator = communicator;
 
-		this.sender = new User(this.communicator.getClient(), data);
+    this.sender = new User(this.communicator.getClient(), data);
 
-		this.party_id = data.party_id;
-		
-		this.time = data.time;
-		
-	}
+    this.partyId = data.partyId;
+    
+    this.time = data.time;
+    
+  }
 
-	send (to) {
+  send(to) {
 
-		return this.communicator.sendRequest({
+    return this.communicator.sendRequest({
 
-			to,
+      to,
 
-			body: JSON.stringify({
+      body: JSON.stringify({
 
-				type: 'com.epicgames.party.joinacknowledged.response',
+        type: 'com.epicgames.party.joinacknowledged.response',
 
-				payload: {
-					partyId: this.party_id
-				},
+        payload: {
+          partyId: this.partyId,
+        },
 
-				timestamp: new Date()
+        timestamp: new Date(),
 
-			})
+      }),
 
-		});
+    });
 
-	}
+  }
 
 }
 

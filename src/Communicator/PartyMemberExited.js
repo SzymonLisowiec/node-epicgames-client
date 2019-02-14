@@ -2,44 +2,44 @@ const User = require('../User');
 
 class PartyMemberExited {
 
-	constructor (communicator, data) {
-		
-		this.communicator = communicator;
+  constructor(communicator, data) {
+    
+    this.communicator = communicator;
 
-		this.sender = new User(this.communicator.getClient(), data);
+    this.sender = new User(this.communicator.getClient(), data);
 
-		this.party_id = data.party_id;
+    this.partyId = data.partyId;
 
-		this.member = new User(this.communicator.getClient(), data.member_id);
-		this.was_kicked = data.was_kicked;
-		
-		this.time = data.time;
-		
-	}
+    this.member = new User(this.communicator.getClient(), data.memberId);
+    this.wasKicked = data.wasKicked;
+    
+    this.time = data.time;
+    
+  }
 
-	send (to) {
+  send(to) {
 
-		return this.communicator.sendRequest({
+    return this.communicator.sendRequest({
 
-			to,
+      to,
 
-			body: JSON.stringify({
+      body: JSON.stringify({
 
-				type: 'com.epicgames.party.memberexited',
+        type: 'com.epicgames.party.memberexited',
 
-				payload: {
-					partyId: this.party_id,
-					memberId: this.member.id,
-					wasKicked: this.was_kicked
-				},
+        payload: {
+          partyId: this.partyId,
+          memberId: this.member.id,
+          wasKicked: this.wasKicked,
+        },
 
-				timestamp: new Date()
+        timestamp: new Date(),
 
-			})
+      }),
 
-		});
+    });
 
-	}
+  }
 
 }
 

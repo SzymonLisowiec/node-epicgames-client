@@ -2,27 +2,48 @@ const User = require('../User');
 
 class Status {
 
-	constructor (communicator, data) {
-		
-		this.communicator = communicator;
+  constructor(communicator, data) {
+        
+    this.communicator = communicator;
+    this.client = this.communicator.getClient();
+    
+    this.sender = new User(this.client, data);
 
-		this.sender = new User(this.communicator.getClient(), data);
+    this.state = data.state;
 
-		this.state = data.state;
+    try {
+      const [, app] = data.jid.resource.toLowerCase().split(':');
+      this.app = app;
+    } catch (err) {
+      this.app = null;
+    }
+    
+    this.readStatus(data.status);
+        
+    this.time = new Date();
 
-		this.app = data.app;
-		this.in_game = data.app; // backward compatibility
+  }
 
-		this.status = data.status.Status || null;
-		this.is_playing = data.status.bIsPlaying || false;
-		this.is_joinable = data.status.bIsJoinable || false;
-		this.has_voice_support =  data.status.bHasVoiceSupport || false;
-		this.session_id = data.status.SessionId || null;
-		this.properties  = data.status.Properties || null;
-		
-		this.time = new Date();
-		
-	}
+  readStatus(rawStatus) {
+    
+    let status = {};
+
+    if (rawStatus) {
+      try {
+        status = JSON.parse(rawStatus);
+      } catch (err) {
+        this.client.debug.print(`Communicator[${this.communicator.resource}]: Cannot parse status's JSON for presentence. (${rawStatus})`);
+      }
+    }
+
+    this.status = status.Status || null;
+    this.isPlaying = !!status.bIsPlaying;
+    this.isJoinable = !!status.bIsJoinable;
+    this.hasVoiceSupport = !!status.bHasVoiceSupport;
+    this.sessionId = status.SessionId || null;
+    this.properties = status.Properties || null;
+
+  }
 
 }
 

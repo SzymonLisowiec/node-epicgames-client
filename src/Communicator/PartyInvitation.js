@@ -4,73 +4,70 @@ const PartyInvitationResponse = require('./PartyInvitationResponse');
 
 class PartyInvitation {
 
-	constructor (communicator, data) {
-		
-		this.communicator = communicator;
-		this.client = this.communicator.getClient();
-		
-		this.sender = new User(this.communicator.getClient(), data);
+  constructor(communicator, data) {
+    
+    this.communicator = communicator;
+    this.client = this.communicator.getClient();
+    
+    this.sender = new User(this.communicator.getClient(), data);
 
-		this.party_id = data.party_id;
-		this.party_type_id = data.party_type_id;
-		this.access_key = data.access_key;
+    this.partyId = data.partyId;
+    this.partyTypeId = data.partyTypeId;
+    this.accessKey = data.accessKey;
 
-		this.app_id = data.app_id;
-		this.build_id = data.build_id;
-		
-		this.time = data.time;
+    this.appId = data.appId;
+    this.buildId = data.buildId;
+    
+    this.time = data.time;
 
-		this.party = data.party;
-		
-	}
+    this.party = data.party;
+    
+  }
 
-	send (to) {
+  send(to) {
 
-		return this.communicator.sendRequest({
+    return this.communicator.sendRequest({
 
-			to,
+      to,
 
-			body: JSON.stringify({
+      body: JSON.stringify({
 
-				type: 'com.epicgames.party.invitation',
+        type: 'com.epicgames.party.invitation',
 
-				payload: {
-					partyId: this.party_id,
-					partyTypeId: this.party_type_id,
-					displayName: this.sender.display_name,
-					accessKey: this.access_key,
-					appId: this.app_id,
-					buildId: this.build_id.toString()
-				},
+        payload: {
+          partyId: this.partyId,
+          partyTypeId: this.partyTypeId,
+          displayName: this.sender.displayName,
+          accessKey: this.accessKey,
+          appId: this.appId,
+          buildId: this.buildId.toString(),
+        },
 
-				timestamp: new Date()
+        timestamp: new Date(),
 
-			})
+      }),
 
-		});
+    });
 
-	}
+  }
 
-	async accept () {
+  async accept() {
+    if (this.sender.id === this.client.account.id) return;
+    await this.party.askToJoin(this.sender.jid);
+  }
 
-		if(this.sender.id === this.client.account.id)
-			return;
+  async reject() {
+    
+    const response = new PartyInvitationResponse(this.communicator, {
+      accountId: this.client.account.id,
+      displayName: this.client.account.displayName,
+      partyId: this.partyId,
+      response: 2,
+    });
 
-		return this.party.askToJoin(this.sender.jid);
-	}
+    return response.send(this.sender.jid);
 
-	async reject () {
-		
-		let response = new PartyInvitationResponse(this.communicator, {
-			account_id: this.client.account.id,
-			display_name: this.client.account.display_name,
-			party_id: this.party_id,
-			response: 2
-		});
-
-		return response.send(this.sender.jid);
-
-	}
+  }
 
 }
 

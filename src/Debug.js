@@ -1,25 +1,18 @@
 class Debug {
 
-    constructor (config) {
+  constructor(config) {
 
-        this.tool = config.tool;
-        delete config.tool;
+    this.tool = config.tool;
+    delete config.tool;
 
-        /*this.config = Object.assign({
-			
-			
+  }
 
-        }, config || {});*/
-
-    }
-
-    print (...args) {
+  print(...args) {
         
-        if(this.tool)
-            return this.tool(...args);
+    if (this.tool) return this.tool(...args);
 
-        return false;
-    }
+    return false;
+  }
 
 }
 

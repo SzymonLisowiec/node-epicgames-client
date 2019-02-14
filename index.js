@@ -10,6 +10,6 @@ module.exports = {
   EUserState: require('./enums/UserState'),
   EPartyPrivacy: require('./enums/PartyPrivacy'),
   EInputType: require('./enums/InputType'),
-  EPlatforms: require('./enums/Platforms'),
+  EPlatform: require('./enums/Platform'),
 
 };

@@ -56,8 +56,7 @@ class Party extends EventEmitter {
       displayName: this.client.account.displayName,
       partyId: this.id,
     });
-
-    // eslint-disable-next-line max-len
+    
     this.me = this.findMemberById(this.client.account.id) || new PartyMember(this.communicator, this, {
       accountId: this.client.account.id,
       displayName: this.client.account.displayName,

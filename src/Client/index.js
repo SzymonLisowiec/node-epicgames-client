@@ -236,7 +236,6 @@ class Client extends Events {
   }
 
   findActiveEntitlementByName(name) {
-    // eslint-disable-next-line max-len
     return this.entitlements.find(entitlement => entitlement.entitlementName === name && entitlement.active === true);
   }
 

@@ -4,13 +4,13 @@ class Friend extends User {
 
   constructor(client, data) {
     super(client, data);
-    
+
     this.status = data.status || 'UNDEFINED'; // UNDEFINED, PENDING, ACCEPTED, BLOCKED, REMOVED
 
     this.lastActionAt = data.time || this.lastActionAt || null;
 
     this.favorite = data.favorite || undefined;
-    
+
   }
 
   static async invite(client, accountId) {
@@ -29,7 +29,7 @@ class Friend extends User {
   }
 
   async remove() {
-    
+
     if (await this.client.removeFriend(this.id)) {
 
       this.status = 'REMOVED';

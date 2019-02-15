@@ -181,9 +181,9 @@ class Communicator extends EventEmitter {
       
       if (stanza.roster && stanza.type === 'result') {
 
-        const friends = stanza.roster.items.map(friend => ({
+        const friends = stanza.roster.items ? stanza.roster.items.map(friend => ({
           accountId: friend.jid.local,
-        }));
+        })) : [];
 
         this.emit('friends', friends);
 

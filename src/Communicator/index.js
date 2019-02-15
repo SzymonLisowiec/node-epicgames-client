@@ -132,16 +132,23 @@ class Communicator extends EventEmitter {
 
       });
       
-      this.stream.once('session:started', () => {
+      this.stream.once('session:started', async () => {
 
         this.emit('session:started');
 
         this.client.debug.print(`Communicator[${this.resource}]: Session started`);
 
-        this.refreshFriendsList();
-        this.updateStatus();
+        await this.refreshFriendsList();
+        await this.updateStatus();
 
         resolve();
+      });
+      
+      this.stream.once('session:bound', () => {
+
+        this.emit('session:bound');
+
+        this.client.debug.print(`Communicator[${this.resource}]: Session bounded`);
       });
       
       this.stream.connect();
@@ -595,11 +602,11 @@ class Communicator extends EventEmitter {
     return this.stream.sendMessage(data);
   }
 
-  refreshFriendsList() {
-    this.stream.getRoster();
+  async refreshFriendsList() {
+    return this.stream.getRoster();
   }
 
-  updateStatus(status) {
+  async updateStatus(status) {
     
     if (!status) return this.stream.sendPresence(null);
     

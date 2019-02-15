@@ -176,7 +176,7 @@ class Client extends Events {
    * @return {boolean}
    */
   isID(value) {
-    return value.length > 16; // temporary way
+    return value && typeof value === 'string' && value.length > 16;
   }
 
   /**
@@ -185,7 +185,7 @@ class Client extends Events {
    * @return {boolean}
    */
   isDisplayName(value) {
-    return value.length >= 3 && value.length <= 16; // temporary way
+    return value && typeof value === 'string' && value.length >= 3 && value.length <= 16;
   }
 
   /**
@@ -214,7 +214,7 @@ class Client extends Events {
     try {
       
       const { data } = await this.http.sendGet(
-        `${ENDPOINT.ACCOUNT_BY_NAME}/${displayName}`,
+        `${ENDPOINT.ACCOUNT_BY_NAME}/${encodeURI(displayName)}`,
         `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
       );
       

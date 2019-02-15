@@ -57,7 +57,7 @@ class User {
 
   async fetchDisplayName() {
 
-    if (this.displayName !== null) return this.displayName; // if we have name, no need to re-fetch
+    if (this.displayName) return this.displayName; // if we have name, no need to re-fetch
 
     let data = await this.client.getProfile(this.id);
     if (data) this.update(data);

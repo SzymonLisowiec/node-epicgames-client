@@ -51,16 +51,17 @@ class User {
   }
 
   async fetch() {
+    let data = await this.client.getProfile(this.id);
+    if (data) this.update(data);
+  }
 
-    if (this.displayName != null) return; // if we have name, no need to re-fetch
+  async fetchDisplayName() {
+
+    if (this.displayName !== null) return this.displayName; // if we have name, no need to re-fetch
 
     let data = await this.client.getProfile(this.id);
     if (data) this.update(data);
 
-  }
-
-  async fetchName() {
-    await this.fetch();
     return this.displayName;
   }
 

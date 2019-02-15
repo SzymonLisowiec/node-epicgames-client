@@ -214,7 +214,7 @@ class Client extends Events {
     try {
       
       const { data } = await this.http.sendGet(
-        `${ENDPOINT.ACCOUNT_BY_NAME}/${displayName}`,
+        `${ENDPOINT.ACCOUNT_BY_NAME}/${encodeURI(displayName)}`,
         `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
       );
       

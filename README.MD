@@ -10,7 +10,7 @@ __This library supports only epicgames launcher. If you need fortnite client, ch
 
 # Installation
 ```
-npm i epicgames-client --save
+npm i epicgames-client@1.3.1 --save
 ```
 
 # Example

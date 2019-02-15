@@ -344,6 +344,8 @@ class Client extends Events {
       .map(id => `&accountId=${id}`)
       .join('')
       .substr(1);
+    
+    if (!qs.length) return false;
 
     try {
 

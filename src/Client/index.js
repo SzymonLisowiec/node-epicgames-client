@@ -410,7 +410,7 @@ class Client extends Events {
 
       const friends = await this.getFriends();
 
-      return friends.findIndex(friend => friend.accountId === user.id) > -1;
+      return friends.findIndex(friend => friend.id === user.id) > -1;
 
     } catch (err) {
 

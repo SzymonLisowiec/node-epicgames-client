@@ -3,9 +3,9 @@ class User {
   constructor(client, data) {
 
     this.client = client;
-    
+
     if (typeof data !== 'object') {
-      
+
       if (data === 'me') {
 
         data = {
@@ -22,7 +22,7 @@ class User {
       }
 
     }
-    
+
     this.id = data.accountId || data.id;
 
     if (!this.id) {
@@ -35,7 +35,7 @@ class User {
 
       this.jid = `${this.id}@${this.client.communicator.host}`;
       if (data.xmppResource) this.jid = `${this.jid}/${data.xmppResource}`;
-      
+
     }
 
     this.displayName = data.displayName || data.accountName || null;
@@ -50,8 +50,22 @@ class User {
     this.externalAuths = data.externalAuths || [];
   }
 
+  async fetch() {
+    let data = await this.client.getProfile(this.id);
+    if (data) this.update(data);
+  }
+
+  async fetchDisplayName() {
+
+    if (this.displayName) return this.displayName; // if we have name, no need to re-fetch
+
+    await fetch();
+
+    return this.displayName;
+  }
+
   static async get(client, user) {
-    
+
     if (typeof user === 'string' && client.isDisplayName(user)) {
 
       const account = await client.lookup(user);
@@ -59,7 +73,7 @@ class User {
       return false;
 
     }
-    
+
     return new this(client, user);
   }
 

@@ -1,6 +1,7 @@
 /* eslint-disable global-require */
 
 module.exports = {
+  
   Client: require('./src/Client'),
   WaitingRoom: require('./src/WaitingRoom'),
   User: require('./src/User'),

@@ -59,7 +59,7 @@ class User {
 
     if (this.displayName) return this.displayName; // if we have name, no need to re-fetch
 
-    await fetch();
+    await this.fetch();
 
     return this.displayName;
   }

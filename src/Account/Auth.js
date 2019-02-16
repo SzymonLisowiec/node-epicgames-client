@@ -90,7 +90,12 @@ class AccountAuth {
   }
 
   async getXSRF() {
-    await this.client.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin?client_id=${this.client.auth.clientId}&redirectUrl=https%3A%2F%2Faccounts.launcher-website-prod07.ol.epicgames.com%2Flogin%2FshowPleaseWait%3Fclient_id%3D${this.client.auth.clientId}%26rememberEmail%3Dfalse`, 'launcher');
+    await this.client.http.sendGet(
+      `${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`
+      + `?client_id=${this.client.auth.clientId}`
+      + `&redirectUrl=https%3A%2F%2Faccounts.launcher-website-prod07.ol.epicgames.com%2Flogin%2FshowPleaseWait%3Fclient_id%3D${this.client.auth.clientId}%26rememberEmail%3Dfalse`,
+      'launcher',
+    );
     return this.client.http.jar.getCookies(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`).find(cookie => cookie.key === 'XSRF-TOKEN').value;
   }
 
@@ -140,7 +145,7 @@ class AccountAuth {
     return false;
   }
 
-  async refreshToken() {
+  async doRefreshToken() {
 
     this.client.debug.print('Refreshing account\'s token...');
 
@@ -207,7 +212,7 @@ class AccountAuth {
     if (this.tokenTimeout) clearTimeout(this.tokenTimeout);
 
     this.tokenTimeout = setTimeout(() => {
-      this.refreshToken();
+      this.doRefreshToken();
     }, (this.expiresIn - 180) * 1000);
 
   }

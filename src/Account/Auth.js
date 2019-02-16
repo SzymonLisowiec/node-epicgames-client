@@ -1,6 +1,11 @@
 const Cheerio = require('cheerio');
+const Readline = require('readline');
 const ENDPOINT = require('../../resources/Endpoint');
 
+const Prompt = Readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
 class AccountAuth {
 
@@ -11,7 +16,7 @@ class AccountAuth {
     
   }
 
-  async auth() {
+  async auth(twoFactorCode) {
     
     try {
 
@@ -26,7 +31,7 @@ class AccountAuth {
       /**
        * Sending login form
        */
-      const { data } = await this.client.http.sendPost(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`, 'launcher', {
+      let { data } = await this.client.http.sendPost(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`, 'launcher', {
         fromForm: 'yes',
         authType: null,
         linkExtAuth: null,
@@ -40,20 +45,25 @@ class AccountAuth {
       });
       
       if (!data || !data.redirectURL) {
-
+        
         const $ = Cheerio.load(data);
         const errorCodesElement = $('.errorCodes');
 
-        if (errorCodesElement.length > 0) {
+        if (errorCodesElement.length) {
 
           const errorMsg = errorCodesElement.text().trim();
 
           throw new Error(`[Account Authorization] Login form error: ${errorMsg}`);
+        } else {
+
+          const twoFactorFormElement = $('#twoFactorForm');
+          if (twoFactorFormElement.length) {
+            data = await this.submitTwoFactorCode(token, twoFactorFormElement, twoFactorCode);
+          } else throw new Error('[Account Authorization] Cannot get "please wait" redirection URL!');
+
         }
 
-        throw new Error('[Account Authorization] Cannot get "please wait" redirection URL!');
       }
-      
 
       /**
        * Reading exchange code from redirected "please wait" page
@@ -81,12 +91,90 @@ class AccountAuth {
       return true;
 
     } catch (err) {
-
-      this.client.debug.print(new Error(err));
+      
+      this.client.debug.print(err);
 
     }
 
     return false;
+  }
+
+  async submitTwoFactorCode(token, twoFactorFormElement, twoFactorCode) {
+
+    const twoFactorForm = {
+      challenge: twoFactorFormElement.find('input[name="challenge"]').val(),
+      mfaMethod: twoFactorFormElement.find('input[name="mfaMethod"]').val(),
+      alternateMfaMethods: twoFactorFormElement.find('input[name="alternateMfaMethods"]').val(),
+      displayName: twoFactorFormElement.find('input[name="epic_username"]').val(),
+      hideMessage: twoFactorFormElement.find('input[name="hideMessage"]').val(),
+      linkExtAuth: twoFactorFormElement.find('input[name="linkExtAuth"]').val(),
+      authType: twoFactorFormElement.find('input[name="authType"]').val(),
+      clientId: twoFactorFormElement.find('input[name="client_id"]').val(),
+      redirectUrl: twoFactorFormElement.find('input[name="redirectUrl"]').val(),
+      rememberMe: twoFactorFormElement.find('input[name="rememberMe"]').val(),
+    };
+
+    if (!twoFactorCode) {
+
+      twoFactorForm.twoFactorCode = await new Promise((resolve) => {
+        Prompt.question(`Enter two factor code (${twoFactorForm.mfaMethod}): `, resolve);
+      });
+
+    } else {
+      
+      switch (typeof twoFactorCode) {
+
+        case 'string':
+          twoFactorForm.twoFactorCode = twoFactorCode;
+          break;
+
+        case 'number':
+          twoFactorForm.twoFactorCode = twoFactorCode;
+          break;
+          
+        case 'function':
+          twoFactorForm.twoFactorCode = await twoFactorCode();
+          break;
+
+        default:
+          throw new Error('`twoFactorCode` parameter must be `string`, `number` or `function`.');
+
+      }
+
+    }
+
+    const { data } = await this.client.http.sendPost(
+      `${ENDPOINT.LOGIN_FRONTEND}/login/doTwoFactor`
+      + `?client_id=${this.client.auth.clientId}`,
+      null,
+      twoFactorForm,
+      false,
+      {
+        'X-XSRF-TOKEN': this.client.http.jar.getCookies(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`).find(cookie => cookie.key === 'XSRF-TOKEN').value,
+      },
+    );
+
+    const $ = Cheerio.load(data);
+    const errorCodesElement = $('.errorCodes');
+    const fieldValidationErrorElement = $('label[for="twoFactorCode"].fieldValidationError');
+    
+    if (errorCodesElement.length) {
+
+      // eslint-disable-next-line no-console
+      console.log(`Error: ${errorCodesElement.text().trim()}`);
+      return this.submitTwoFactorCode(token, $('#twoFactorForm'), twoFactorCode);
+
+    }
+    
+    if (fieldValidationErrorElement.length) {
+
+      // eslint-disable-next-line no-console
+      console.log(`Error: ${fieldValidationErrorElement.text().trim()}`);
+      return this.submitTwoFactorCode(token, $('#twoFactorForm'));
+      
+    }
+
+    return JSON.parse(data);
   }
 
   async getXSRF() {

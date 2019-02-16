@@ -134,10 +134,10 @@ class Client extends Events {
    * Loging to an account.
    * @return {boolean} True if success.
    */
-  async login() {
+  async login(twoFactorCode) {
 
     this.account = new Account(this);
-    const auth = await this.account.authorize();
+    const auth = await this.account.authorize(twoFactorCode);
 
     if (auth) {
       

@@ -46,10 +46,10 @@ class Account {
     return false;
   }
 
-  async authorize() {
+  async authorize(twoFactorCode) {
 
     this.auth = new Auth(this.client);
-    const auth = await this.auth.auth();
+    const auth = await this.auth.auth(twoFactorCode);
 
     if (auth) {
 

@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+
 module.exports = Object.freeze({
 
   EULA_TRACKING: 'https://eulatracking-public-service-prod06.ol.epicgames.com/eulatracking/api/public/agreements/{{namespace}}',

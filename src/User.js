@@ -1,7 +1,7 @@
 class User {
 
   constructor(client, data) {
-
+    
     this.client = client;
 
     if (typeof data !== 'object') {
@@ -51,16 +51,15 @@ class User {
   }
 
   async fetch() {
-    let data = await this.client.getProfile(this.id);
+    const data = await this.client.getProfile(this.id);
     if (data) this.update(data);
   }
 
   async fetchDisplayName() {
 
     if (this.displayName) return this.displayName; // if we have name, no need to re-fetch
-
     await this.fetch();
-
+    
     return this.displayName;
   }
 

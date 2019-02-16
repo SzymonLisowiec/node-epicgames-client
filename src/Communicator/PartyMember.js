@@ -1,4 +1,5 @@
 const User = require('../User');
+const PartyMemberPromoted = require('./PartyMemberPromoted');
 const PartyMemberData = require('./PartyMemberData');
 
 class PartyMember extends User {
@@ -8,6 +9,7 @@ class PartyMember extends User {
 
     this.party = party;
     this.communicator = communicator;
+    this.client = this.communicator.getClient();
     
     this.data = data.memberData || new PartyMemberData(this.communicator, {
       ...data,
@@ -48,6 +50,31 @@ class PartyMember extends User {
 
   async clearEmote() {
     return this.data.clearEmote(this.party.members.map(member => member.jid));
+  }
+
+  async promote(leaderLeaving) {
+
+    const sending = [];
+    const member = this.party.findMemberById(this.id);
+    
+    const promote = new PartyMemberPromoted(this.communicator, {
+      partyId: this.party.id,
+      id: this.client.account.id,
+      displayName: this.client.account.displayName,
+      jid: this.communicator.stream.jid,
+      member: {
+        id: member.id,
+        displayName: member.displayName,
+        jid: member.jid,
+      },
+      leaderLeaving,
+    });
+    
+    this.party.members.forEach((m) => {
+      sending.push(promote.send(m.jid));
+    });
+
+    return Promise.all(sending);
   }
 
 }

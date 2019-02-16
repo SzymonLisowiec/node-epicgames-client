@@ -9,7 +9,6 @@ class PartyJoinRequestApproved {
     this.sender = new User(this.communicator.getClient(), data);
 
     this.partyId = data.partyId;
-    this.partyTypeId = data.partyTypeId;
     this.accessKey = data.accessKey;
 
     this.presencePermissions = data.presencePermissions;
@@ -46,7 +45,6 @@ class PartyJoinRequestApproved {
 
         payload: {
           partyId: this.partyId,
-          partyTypeId: this.partyTypeId,
           accessKey: this.accessKey,
           presencePermissions: this.presencePermissions,
           invitePermissions: this.invitePermissions,

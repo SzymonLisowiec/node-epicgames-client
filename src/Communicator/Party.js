@@ -204,44 +204,6 @@ class Party extends EventEmitter {
   findMemberById(id) {
     return this.members.find(member => member.id === id);
   }
-
-  /**
-   * @function Kick a party member, or leaves if accountId is the bots id
-   * @param {*} accountId 
-   */
-  kick(accountId) {
-
-    if (this.leader != this.client.account.id) return; // cannot kick if not party leader
-
-    if (accountId == this.client.account.id) return this.exit(true);
-
-    const memberToKick = this.findMemberById(accountId);
-    
-    if (memberToKick) {
-      this.members.forEach(member => {
-        var to = member.jid;
-        this.communicator.sendRequest({
-          to,
-  
-          body: JSON.stringify({
-  
-            type: 'com.epicgames.party.memberexited',
-  
-            payload: {
-              partyId: this.id,
-              memberId: accountId,
-              wasKicked: true,
-            },
-  
-            timestamp: new Date()
-  
-          })
-  
-        });
-      });
-    }
-
-  }
   
   invite(jid) {
 

@@ -23,10 +23,9 @@ class AccountAuth {
       /**
        * Geting XSRF TOKEN
        */
-      const token = await this.getXSRF();
+      const token = await this.getXSRF('login');
 
       if (!token) throw new Error('[Account Authorization] Cannot get XSRF TOKEN!');
-
 
       /**
        * Sending login form
@@ -92,6 +91,70 @@ class AccountAuth {
 
     } catch (err) {
       
+      this.client.debug.print(err);
+
+    }
+
+    return false;
+  }
+
+  async register(options) {
+
+    try {
+
+      const token = await this.getXSRF('register');
+      
+      const { data } = await this.client.http.sendPost(
+        `${ENDPOINT.LOGIN_FRONTEND}/register/doLauncherRegister`,
+        'launcher',
+        {
+          fromForm: 'yes',
+          location: '/location',
+          authType: null,
+          client_id: this.client.auth.clientId,
+          redirectUrl: `${ENDPOINT.LOGIN_FRONTEND}/login/showPleaseWait?client_id=${this.client.auth.clientId}&rememberEmail=false`,
+          country: options.country,
+          name: options.firstName,
+          lastName: options.lastName,
+          displayName: options.displayName,
+          email: options.email,
+          password: options.password,
+          termsAgree: 'yes',
+          register: 'sign in',
+        }, true, {
+          'X-XSRF-TOKEN': token,
+        },
+      );
+      
+      const $ = Cheerio.load(data);
+      const fieldValidationErrorElements = $('label.fieldValidationError');
+
+      if (fieldValidationErrorElements.length) {
+        throw new Error(`Error while registration. Field: ${fieldValidationErrorElements.eq(0).attr('for')} Message: ${fieldValidationErrorElements.eq(0).text()}`);
+      }
+
+      /**
+       * Reading exchange code from redirected "please wait" page
+       */
+      const exchangeCode = await this.getExchangeCode(data.redirectURL);
+      if (!exchangeCode) throw new Error('[Account Authorization] Cannot get exchange code!');
+      
+      /**
+       * Exchanging code on token "eg1"
+       */
+      const authData = await this.exchangeCode(exchangeCode);
+      if (!authData) throw new Error('[Account Authorization] Cannot exchange code and receive authData!');
+      
+      /**
+       * Ending auth process
+       */
+      this.setAuthParams(authData);
+      this.setTokenTimeout();
+
+      return true;
+
+    } catch (err) {
+        
       this.client.debug.print(err);
 
     }
@@ -177,10 +240,12 @@ class AccountAuth {
     return JSON.parse(data);
   }
 
-  async getXSRF() {
+  async getXSRF(location) {
+
+    const url = location === 'login' ? `${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin` : `${ENDPOINT.LOGIN_FRONTEND}/register/doLauncherRegister`;
+
     await this.client.http.sendGet(
-      `${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`
-      + `?client_id=${this.client.auth.clientId}`
+      `${url}?client_id=${this.client.auth.clientId}`
       + `&redirectUrl=https%3A%2F%2Faccounts.launcher-website-prod07.ol.epicgames.com%2Flogin%2FshowPleaseWait%3Fclient_id%3D${this.client.auth.clientId}%26rememberEmail%3Dfalse`,
       'launcher',
     );
@@ -241,7 +306,7 @@ class AccountAuth {
 
       const { data } = await this.client.http.sendPost(ENDPOINT.OAUTH_TOKEN, 'launcher', {
         grant_type: 'refresh_token',
-        refresh_token: this.refresh_token,
+        refresh_token: this.refreshToken,
         includePerms: false, // Account's permissions
       });
       
@@ -277,7 +342,7 @@ class AccountAuth {
   }
 
   setAuthParams(data) {
-
+    
     this.accessToken = data.access_token;
     this.expiresIn = data.expires_in;
     this.expiresAt = data.expires_at;

@@ -471,6 +471,17 @@ class Party extends EventEmitter {
     this.emit('member:promoted', promoted);
   }
 
+  async setPlaylist(playlistName, tournamentId, eventWindowId) {
+
+    const sending = [];
+
+    this.members.forEach((member) => {
+      sending.push(this.data.setPlaylist(member.jid, playlistName, tournamentId, eventWindowId));
+    });
+
+    return Promise.all(sending);
+  }
+
   async setPrivacy(privacy, allowFriends) {
 
     if (this.leader !== this.client.account.id) return false;

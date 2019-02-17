@@ -1,4 +1,5 @@
 const Events = require('events');
+
 const ENDPOINT = require('../../resources/Endpoint');
 
 const Http = require('../Http');
@@ -129,10 +130,9 @@ class Client extends Events {
 
     return false;
   }
-
+  
   /**
-   * Loging to an account.
-   * @return {boolean} True if success.
+   * @param {(string|number|function)=} twoFactorCode 
    */
   async login(twoFactorCode) {
 
@@ -155,8 +155,12 @@ class Client extends Events {
     return false;
   }
 
+  async register(options) {
+    this.account = new Account(this);
+    return this.account.register(options);
+  }
+
   /**
-   * Logouting
    * @return {boolean} True if success.
    */
   async logout() {
@@ -209,6 +213,10 @@ class Client extends Events {
     return false;
   } 
 
+  /**
+   * Returns account's id.
+   * @param {string} displayName
+   */
   async lookup(displayName) {
 
     try {
@@ -235,10 +243,16 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * @param {string} name 
+   */
   findActiveEntitlementByName(name) {
     return this.entitlements.find(entitlement => entitlement.entitlementName === name && entitlement.active === true);
   }
 
+  /**
+   * Returns account's entitlements.
+   */
   async getEntitlements() {
     
     try {
@@ -258,7 +272,13 @@ class Client extends Events {
 
     return false;
   }
-
+  
+  /**
+   * Returns offers for game.
+   * @param {*} namespace epicgame's namespace
+   * @param {*} count 
+   * @param {*} start 
+   */
   async getOffersForNamespace(namespace, count, start) {
     
     try {
@@ -283,6 +303,11 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * Buy offer.
+   * @param {Object} offer object with `offerId` and `namespace`
+   * @param {number} quantity 
+   */
   async quickPurchase(offer, quantity) {
     
     try {
@@ -322,9 +347,8 @@ class Client extends Events {
   }
 
   /**
-   * Get specyfic user profile
+   * Returns specyfic user profile.
    * @param {string} id - account's id or display name
-   * @return {boolean}
    */
   async getProfile(id) {
 
@@ -335,6 +359,10 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * Returns profiles of selected users.
+   * @param {string[]} ids - array of accounts id or display name
+   */
   async getProfiles(ids) {
 
     let qs = ids.map(id => (this.isDisplayName(id) ? this.lookup(id) : id));
@@ -369,6 +397,10 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * Returns list of friends.
+   * @param {boolean} includePending true if you want get pending friends.
+   */
   async getFriends(includePending) {
 
     try {
@@ -396,12 +428,19 @@ class Client extends Events {
     return [];
   }
 
+  /**
+   * Returns all received invites to friends.
+   */
   async getPendingFriends() {
     const friends = await this.getFriends(true);
 
     return friends ? friends.filter(friend => friend.status === 'PENDING') : [];
   }
 
+  /**
+   * Returns `true` if selected user is your friend.
+   * @param {string} id account's id or display name
+   */
   async hasFriend(id) {
 
     try {
@@ -423,6 +462,9 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * Returns blocked friends.
+   */
   async getFriendsBlocklist() {
 
     try {
@@ -446,7 +488,7 @@ class Client extends Events {
 
   /**
    * Block a friend.
-   * @param {string} id - account's id or display name
+   * @param {string} id account's id or display name
    * @return {boolean}
    */
   async blockFriend(id) {
@@ -480,7 +522,7 @@ class Client extends Events {
 
   /**
    * Remove a friend.
-   * @param {string} id - account's id or display name
+   * @param {string} id account's id or display name
    * @return {boolean}
    */
   async removeFriend(id) {
@@ -515,7 +557,7 @@ class Client extends Events {
 
   /**
    * Invite a new friend.
-   * @param {string} id - account's id or display name
+   * @param {string} id account's id or display name
    * @return {boolean}
    */
   async inviteFriend(id) {
@@ -548,8 +590,8 @@ class Client extends Events {
   }
 
   /**
-   * Accepting friend's invitation. Alias for method inviteFriend
-   * @param {string} id - account's id or display name
+   * Accept friend's invitation. Alias for method inviteFriend
+   * @param {string} id account's id or display name
    * @return {boolean}
    */
   async acceptFriendRequest(id) {
@@ -557,7 +599,7 @@ class Client extends Events {
   }
 
   /**
-   * Declining friend's invitation. Alias for method removeFriend
+   * Decline friend's invitation. Alias for method removeFriend
    * @param {string} id - account's id or display name
    * @return {boolean}
    */
@@ -565,6 +607,9 @@ class Client extends Events {
     return this.removeFriend(id);
   }
 
+  /**
+   * Returns launcher's status e.g. `DEPRECATED`.
+   */
   async getLauncherStatus() {
     
     try {
@@ -586,6 +631,9 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * Returns informations about launcher.
+   */
   async getLauncherInfo() { // PROBABLY DEPRECATED
 
     try {
@@ -607,6 +655,10 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * Returns EULA for selected game.
+   * @param {string} namespace epicgames's namespace for game, e.g. `fn` for Fortnite.
+   */
   async checkEULA(namespace) {
 
     try {
@@ -628,6 +680,10 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * Accepting eula received in `checkEULA()` method.
+   * @param {Object} eula 
+   */
   async acceptEULA(eula) {
     
     try {
@@ -649,6 +705,11 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * Run a game.
+   * @param {Object} game e.g. `require('epicgames-fortnite-client')` 
+   * @param {*} options options for game client
+   */
   async runGame(game, options) {
     
     try {
@@ -705,6 +766,144 @@ class Client extends Events {
     }
 
     return false;
+  }
+
+  /**
+   * Resend email verification.
+   */
+  async resendEmailVerification() {
+
+    const exchange = await this.account.auth.exchange();
+
+    await this.http.sendGet(`https://accounts.epicgames.com/exchange?exchangeCode=${exchange.code}&redirectUrl=https%3A%2F%2Fepicgames.com%2Fsite%2Faccount`);
+  
+    const { data } = await this.http.sendGet(
+      'https://www.epicgames.com/account/resendEmailVerification',
+      `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
+    );
+    
+    return data.success;
+  }
+
+  /**
+   * Enable two factor authentication.
+   * @param {string} type `authenticator` or `email`
+   * @param {(string|number|function)} twoFactorCode 
+   */
+  async enableTwoFactor(type, twoFactorCode) {
+
+    const exchange = await this.account.auth.exchange();
+
+    await this.http.sendGet(`https://accounts.epicgames.com/exchange?exchangeCode=${exchange.code}&redirectUrl=https%3A%2F%2Fepicgames.com%2Fsite%2Faccount`);
+    
+    let csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
+     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
+    csrfToken = csrfToken.value;
+
+    const {
+      data: {
+        verify: {
+          otpauth,
+          secret,
+          challenge,
+        },
+      },
+    } = await this.http.sendPost(
+      'https://www.epicgames.com/account/security/ajaxUpdateTwoFactorAuthSettings',
+      null,
+      {
+        type,
+        enabled: true,
+      },
+      true,
+      {
+        'x-csrf-token': csrfToken,
+        'x-requested-with': 'XMLHttpRequest',
+        'x-xsrf-token': 'invalid',
+      },
+    );
+
+    let otp;
+      
+    switch (typeof twoFactorCode) {
+
+      case 'string':
+        otp = twoFactorCode;
+        break;
+
+      case 'number':
+        otp = twoFactorCode;
+        break;
+          
+      case 'function':
+        otp = await twoFactorCode(secret, otpauth);
+        break;
+
+      default:
+        throw new Error('`twoFactorCode` parameter must be `string`, `number` or `function`.');
+
+    }
+
+    csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
+     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
+    csrfToken = csrfToken.value;
+
+    const { data } = await this.http.sendPost(
+      'https://www.epicgames.com/account/security/ajaxUpdateTwoFactorAuthSettings',
+      null,
+      {
+        type: `${type}_challenge`,
+        enabled: true,
+        otp,
+        challenge,
+      },
+      true,
+      {
+        'x-csrf-token': csrfToken,
+        'x-requested-with': 'XMLHttpRequest',
+        'x-xsrf-token': 'invalid',
+      },
+    );
+
+    return data && data.isSuccess ? {
+      otpauth,
+      secret,
+    } : false;
+  }
+
+  /**
+   * Disable two factor authentication.
+   * @param {string} type `authenticator` or `email`
+   */
+  async disableTwoFactor(type) {
+
+    const exchange = await this.account.auth.exchange();
+
+    await this.http.sendGet(`https://accounts.epicgames.com/exchange?exchangeCode=${exchange.code}&redirectUrl=https%3A%2F%2Fepicgames.com%2Fsite%2Faccount`);
+    
+    let csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
+     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
+    csrfToken = csrfToken.value;
+
+    const {
+      data: {
+        isSuccess,
+      },
+    } = await this.http.sendPost(
+      'https://www.epicgames.com/account/security/ajaxRemoveTwoFactorAuthMethod',
+      null,
+      {
+        type,
+      },
+      true,
+      {
+        'x-csrf-token': csrfToken,
+        'x-requested-with': 'XMLHttpRequest',
+        'x-xsrf-token': 'invalid',
+      },
+    );
+
+    return isSuccess;
   }
 
 }

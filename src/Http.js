@@ -78,7 +78,7 @@ class Http {
         }
 
         if (typeof body === 'object' && typeof body.errorCode !== 'undefined') {
-
+          
           switch (body.errorCode) {
 
             case 'errors.com.epicgames.common.oauth.invalid_token':
@@ -86,6 +86,8 @@ class Http {
               break;
 
             default:
+              // eslint-disable-next-line no-console
+              if (process.env.KYSUNE_EPICGAMES_CLIENT) console.dir(body);
               reject(body.errorCode);
               break;
 

@@ -51,15 +51,25 @@ class Account {
     this.auth = new Auth(this.client);
     const auth = await this.auth.auth(twoFactorCode);
 
-    if (auth) {
+    if (!auth) return false;
 
-      this.id = this.auth.accountId;
-      await this.fetch();
-      return true;
-            
-    }
+    this.id = this.auth.accountId;
+    await this.fetch();
+    
+    return true;
+  }
 
-    return false;
+  async register(options) {
+    
+    this.auth = new Auth(this.client);
+    const auth = await this.auth.register(options);
+
+    if (!auth) return false;
+
+    this.id = this.auth.accountId;
+    await this.fetch();
+    
+    return true;
   }
 
 }

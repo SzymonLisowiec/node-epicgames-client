@@ -204,6 +204,38 @@ class Party extends EventEmitter {
   findMemberById(id) {
     return this.members.find(member => member.id === id);
   }
+
+  kick(accountId) {
+
+    if (accountId == this.client.account.id) return this.exit(true);
+
+    const memberToKick = this.findMemberById(accountId);
+    
+    if (memberToKick) {
+      this.members.forEach(member => {
+        var to = member.jid;
+        this.communicator.sendRequest({
+          to,
+  
+          body: JSON.stringify({
+  
+            type: 'com.epicgames.party.memberexited',
+  
+            payload: {
+              partyId: this.id,
+              memberId: accountId,
+              wasKicked: true,
+            },
+  
+            timestamp: new Date()
+  
+          })
+  
+        });
+      });
+    }
+
+  }
   
   invite(jid) {
 

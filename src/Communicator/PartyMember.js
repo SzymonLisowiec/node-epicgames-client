@@ -52,6 +52,44 @@ class PartyMember extends User {
     return this.data.clearEmote(this.party.members.map(member => member.jid));
   }
 
+  /**
+   * @function Kick a party member, or leaves if member is the bot
+   */
+  async kick() {
+
+    if (this.party.leader != this.client.account.id) return; // cannot kick if not party leader
+
+    if (this.id == this.client.account.id) return this.party.exit(true);
+
+    const sending = [];
+
+    let kickPayload = JSON.stringify({
+  
+      type: 'com.epicgames.party.memberexited',
+
+      payload: {
+        partyId: this.party.id,
+        memberId: this.id,
+        wasKicked: true,
+      },
+
+      timestamp: new Date()
+
+    });
+
+    this.party.members.forEach(member => {
+      var to = member.jid;
+      sending.push(
+        this.communicator.sendRequest({
+          to,
+          body: kickPayload
+        })
+      );
+    });
+
+    return Promise.all(sending);
+  }
+
   async promote(leaderLeaving) {
 
     const sending = [];

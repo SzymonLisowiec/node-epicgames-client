@@ -86,7 +86,7 @@ class PartyData {
    */
   get playlist() {
 
-    const playlist = this.payload.Attrs.PlaylistData;
+    const playlist = this.payload.Attrs.PlaylistData_j.PlaylistData;
 
     return {
       name: playlist.playlistName,
@@ -124,7 +124,10 @@ class PartyData {
   sendPart(part, to) {
 
     this.rev += 1;
-    part.Rev = this.rev;
+    part = {
+      Rev: this.rev,
+      ...part,
+    };
 
     return this.communicator.sendRequest({
 
@@ -189,6 +192,22 @@ class PartyData {
     await this.sendPart({
       Attrs: {
         PrivacySettings_j: this.payload.Attrs.PrivacySettings_j,
+      },
+    }, to);
+
+  }
+
+  async setPlaylist(to, playlistName, tournamentId, eventWindowId) {
+
+    this.payload.Attrs.PlaylistData_j.PlaylistData = {
+      playlistName,
+      tournamentId: tournamentId || '',
+      eventWindowId: eventWindowId || '',
+    };
+
+    await this.sendPart({
+      Attrs: {
+        PlaylistData_j: this.payload.Attrs.PlaylistData_j,
       },
     }, to);
 

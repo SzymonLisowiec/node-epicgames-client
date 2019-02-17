@@ -48,7 +48,10 @@ class PartyMemberData {
   sendPart(part, to) {
 
     this.rev += 1;
-    part.Rev = this.rev;
+    part = {
+      Rev: this.rev,
+      ...part,
+    };
 
     return this.communicator.sendRequest({
 
@@ -73,7 +76,7 @@ class PartyMemberData {
   
   setReady(isReady, jid) {
 
-    this.payload.Attrs.FrontendEmote_j.IsReadyAthena_b = isReady;
+    this.payload.Attrs.IsReadyAthena_b = isReady;
     
     const part = {
       

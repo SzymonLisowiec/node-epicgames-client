@@ -71,6 +71,13 @@ class Party extends EventEmitter {
 
   static async make(communicator, options) {
     
+    if (
+      typeof options === 'undefined'
+      || typeof options.typeId === 'undefined'
+      || typeof options.appId === 'undefined'
+      || typeof options.buildId === 'undefined'
+    ) throw new Error('Options `typeId`, `appId`, and `buildId` are required.');
+
     const partyId = communicator.generateUUID();
 
     const party = new this(communicator, {
@@ -182,6 +189,9 @@ class Party extends EventEmitter {
     this.members.forEach((member) => {
       memberExited.send(member.jid);
     });
+
+    const newLeader = this.members.find(member => member.id !== this.client.account.id);
+    newLeader.promote(true);
 
     this.communicator.updateStatus();
 
@@ -340,7 +350,6 @@ class Party extends EventEmitter {
 
     const approve = new PartyJoinRequestApproved(this.communicator, {
       partyId: this.id,
-      partyTypeId: this.typeId,
       accountId: this.client.account.id,
       displayName: this.client.account.displayName,
       accessKey: this.accessKey,
@@ -420,6 +429,13 @@ class Party extends EventEmitter {
     } else {
 
       this.me.data.send(joined.member.jid);
+      
+      this.addMember({
+        id: joined.member.id,
+        displayName: joined.member.displayName,
+        partyId: this.id,
+        jid: joined.member.jid,
+      });
 
     }
 
@@ -445,6 +461,7 @@ class Party extends EventEmitter {
     const member = this.addMember({
       id: memberData.sender.id,
       partyId: this.id,
+      jid: memberData.sender.jid,
     });
     member.data.payload = { ...member.data.payload, ...memberData.payload };
   }
@@ -452,6 +469,17 @@ class Party extends EventEmitter {
   async onMemberPromoted(promoted) {
     this.leader = promoted.member.id;
     this.emit('member:promoted', promoted);
+  }
+
+  async setPlaylist(playlistName, tournamentId, eventWindowId) {
+
+    const sending = [];
+
+    this.members.forEach((member) => {
+      sending.push(this.data.setPlaylist(member.jid, playlistName, tournamentId, eventWindowId));
+    });
+
+    return Promise.all(sending);
   }
 
   async setPrivacy(privacy, allowFriends) {
@@ -597,6 +625,23 @@ class Party extends EventEmitter {
       this.communicator.once(`party#${this.id}:join:approved`, async (approve) => {
         
         this.client.debug.print(`[Party#${this.id}] Join request has approved!`);
+
+        this.presencePermissions = approve.presencePermissions;
+        this.invitePermissions = approve.invitePermissions;
+        this.flags = approve.partyFlags;
+        this.notAcceptingMembersReason = approve.notAcceptingMemberReason;
+        this.maxMembers = approve.maxMembers;
+        this.password = approve.password;
+
+        approve.members.forEach((member) => {
+          this.addMember({
+            id: member.id,
+            displayName: member.displayName,
+            jid: member.jid,
+            partyId: this.id,
+          });
+        });
+
         resolve(approve);
 
       });

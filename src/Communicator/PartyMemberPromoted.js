@@ -17,6 +17,30 @@ class PartyMemberPromoted {
     
   }
 
+  send(to) {
+
+    return this.communicator.sendRequest({
+
+      to,
+
+      body: JSON.stringify({
+
+        type: 'com.epicgames.party.memberpromoted',
+
+        payload: {
+          partyId: this.partyId,
+          promotedMemberUserId: this.member.id,
+          fromLeaderLeaving: this.leaderLeaving,
+        },
+
+        timestamp: new Date(),
+
+      }),
+
+    });
+
+  }
+
 }
 
 module.exports = PartyMemberPromoted;

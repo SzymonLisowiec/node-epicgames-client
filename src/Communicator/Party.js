@@ -211,8 +211,6 @@ class Party extends EventEmitter {
    */
   kick(accountId) {
 
-    if (this.leader === null) return; // no party leader set (bot made party, but didnt invite anyone)
-
     if (this.leader != this.client.account.id) return; // cannot kick if not party leader
 
     if (accountId == this.client.account.id) return this.exit(true);

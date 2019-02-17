@@ -53,8 +53,7 @@ class PartyMember extends User {
   }
 
   /**
-   * @function Kick a party member, or leaves if accountId is the bots id
-   * @param {*} accountId 
+   * @function Kick a party member, or leaves if member is the bot
    */
   async kick() {
 

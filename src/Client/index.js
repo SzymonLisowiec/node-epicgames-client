@@ -13,6 +13,15 @@ const Friend = require('../Friend');
 
 class Client extends Events {
 
+  /**
+   * @param {Object} config 
+   * @param {Object} config.email
+   * @param {Object} config.password
+   * @param {Object=} config.debug if you need console/file output with logs. Simple you can use `console.log`
+   * @param {Object=} config.useWaitingRoom false to ignore waiting room (epicgames load balancer)
+   * @param {Object=} config.language eg. `US`, `PL`
+   * @param {Object=} config.http settings for lib https://github.com/request/request
+   */
   constructor(config) {
     super(config);
 
@@ -57,6 +66,7 @@ class Client extends Events {
 
   /**
    * Sets client language
+   * @param {string} language 
    */
   setLanguage(language) {
     this.http.setHeader('Accept-Language', language);
@@ -155,6 +165,15 @@ class Client extends Events {
     return false;
   }
 
+  /**
+   * @param {Object} options 
+   * @param {string} options.country e.g. `US`, `PL`
+   * @param {string} options.firstName
+   * @param {string} options.lastName
+   * @param {string} options.displayName
+   * @param {string} options.email
+   * @param {string} options.password
+   */
   async register(options) {
     this.account = new Account(this);
     return this.account.register(options);

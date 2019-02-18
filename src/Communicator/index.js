@@ -623,6 +623,19 @@ class Communicator extends EventEmitter {
     return this.stream.sendPresence(status);
   }
 
+  /**
+   * Sending presence probe.
+   * @param {(JID|string)} to 
+   */
+  async sendProbe(to) {
+
+    return this.stream.sendPresence({
+      to,
+      type: 'probe',
+    });
+
+  }
+
 }
 
 module.exports = Communicator;

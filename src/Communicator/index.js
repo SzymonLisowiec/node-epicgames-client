@@ -624,7 +624,7 @@ class Communicator extends EventEmitter {
   }
 
   /**
-   * Sending presence probe.
+   * Sending request for presence.
    * @param {(JID|string)} to 
    */
   async sendProbe(to) {

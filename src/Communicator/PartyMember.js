@@ -57,33 +57,30 @@ class PartyMember extends User {
    */
   async kick() {
 
-    if (this.party.leader != this.client.account.id) return; // cannot kick if not party leader
+    if (this.party.leader !== this.client.account.id) return false; // cannot kick if not party leader
 
-    if (this.id == this.client.account.id) return this.party.exit(true);
+    if (this.id === this.client.account.id) return this.party.exit(true);
 
     const sending = [];
 
-    let kickPayload = JSON.stringify({
-  
-      type: 'com.epicgames.party.memberexited',
-
-      payload: {
-        partyId: this.party.id,
-        memberId: this.id,
-        wasKicked: true,
-      },
-
-      timestamp: new Date()
-
-    });
-
-    this.party.members.forEach(member => {
-      var to = member.jid;
+    this.party.members.forEach((member) => {
       sending.push(
         this.communicator.sendRequest({
-          to,
-          body: kickPayload
-        })
+          to: member.jid,
+          body: JSON.stringify({
+  
+            type: 'com.epicgames.party.memberexited',
+      
+            payload: {
+              partyId: this.party.id,
+              memberId: this.id,
+              wasKicked: true,
+            },
+      
+            timestamp: new Date(),
+      
+          }),
+        }),
       );
     });
 

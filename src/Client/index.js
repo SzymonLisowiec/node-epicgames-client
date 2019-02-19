@@ -26,7 +26,7 @@ class Client extends Events {
     super(config);
 
     this.appName = 'Launcher';
-    this.libraryName = process.env.KYSUNE_EPICGAMES_CLIENT || 'epicgames-client';
+    this.libraryName = 'epicgames-client';
 
     this.config = {
 

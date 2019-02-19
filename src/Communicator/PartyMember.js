@@ -103,24 +103,26 @@ class PartyMember extends User {
     }
 
     const sending = [];
+    
+    const body = JSON.stringify({
+  
+      type: 'com.epicgames.party.memberexited',
+
+      payload: {
+        partyId: this.party.id,
+        memberId: this.id,
+        wasKicked: true,
+      },
+
+      timestamp: new Date(),
+
+    });
 
     this.party.members.forEach((member) => {
       sending.push(
         this.communicator.sendRequest({
           to: member.jid,
-          body: JSON.stringify({
-  
-            type: 'com.epicgames.party.memberexited',
-      
-            payload: {
-              partyId: this.party.id,
-              memberId: this.id,
-              wasKicked: true,
-            },
-      
-            timestamp: new Date(),
-      
-          }),
+          body,
         }),
       );
     });

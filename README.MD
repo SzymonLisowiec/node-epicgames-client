@@ -1,6 +1,5 @@
 
-# node-epicgames-client
-### Unofficial EpicGames Launcher in javascript.
+# Unofficial EpicGames Client for Node.js
 [![npm version](https://img.shields.io/npm/v/epicgames-client.svg)](https://npmjs.com/package/epicgames-client)
 [![npm downloads](https://img.shields.io/npm/dm/epicgames-client.svg)](https://npmjs.com/package/epicgames-client)
 [![license](https://img.shields.io/npm/l/epicgames-client.svg)](https://github.com/SzymonLisowiec/node-epicgames-client/blob/master/LICENSE.MD)

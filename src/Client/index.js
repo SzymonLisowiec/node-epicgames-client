@@ -142,12 +142,43 @@ class Client extends Events {
   }
   
   /**
-   * @param {(string|number|function)=} twoFactorCode 
+   * @param {(object|string|number|function|)=} options credentials or twoFactorCode, check wiki.
    */
-  async login(twoFactorCode) {
+  async login(options) {
+
+    let credentials = {
+      email: this.config.email || '',
+      password: this.config.password || '',
+      twoFactorCode: false,
+    };
+    
+    switch (typeof options) { // backward compatibility
+
+      case 'object':
+        credentials = options;
+        break;
+
+      case 'string':
+        credentials.twoFactorCode = options;
+        break;
+
+      case 'number':
+        credentials.twoFactorCode = options;
+        break;
+
+      case 'function':
+        credentials.twoFactorCode = options;
+        break;
+
+      default:
+        if (typeof options !== 'undefined') {
+          throw new Error('login() `options` must be object');
+        }
+        
+    } 
 
     this.account = new Account(this);
-    const auth = await this.account.authorize(twoFactorCode);
+    const auth = await this.account.authorize(credentials);
 
     if (auth) {
       

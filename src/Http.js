@@ -87,8 +87,8 @@ class Http {
 
             default:
               // eslint-disable-next-line no-console
-              if (process.env.KYSUNE_EPICGAMES_CLIENT) console.dir(body);
-              reject(body.errorCode);
+              if (process.env.KYSUNE) console.dir(body);
+              reject(new Error(body.errorCode));
               break;
 
           }

@@ -4,6 +4,11 @@ const PartyMemberData = require('./PartyMemberData');
 
 class PartyMember extends User {
 
+  /**
+   * @param {Communicator} communicator 
+   * @param {Party} party 
+   * @param {Object} data
+   */
   constructor(communicator, party, data) {
     super(communicator.getClient(), data);
 
@@ -18,14 +23,28 @@ class PartyMember extends User {
     
   }
 
+  /**
+   * Set ready state.
+   * @param {boolean} isReady
+   */
   async setReady(isReady) {
     return this.data.setReady(isReady, this.party.members.map(member => member.jid));
   }
 
+  /**
+   * Change character's outfit.
+   * @param {string} asset e.g. `/Game/Athena/Items/Cosmetics/Characters/CID_342_Athena_Commando_M_StreetRacerMetallic.CID_342_Athena_Commando_M_StreetRacerMetallic`
+   */
   async setBRCharacter(asset) {
     return this.data.setBRCharacter(asset, this.party.members.map(member => member.jid));
   }
 
+  /**
+   * Change player's banner.
+   * @param {string} id e.g. `standardbanner15`
+   * @param {String} color e.g. `defaultcolor15`
+   * @param {number} seasonLevel 
+   */
   async setBRBanner(id, color, seasonLevel) {
     return this.data.setBRBanner(
       id, color, seasonLevel,
@@ -33,10 +52,21 @@ class PartyMember extends User {
     );
   }
 
+  /**
+   * Change player's input type, e.g. mouse and keyboard.
+   * @param {EInputType} inputType 
+   */
   async setInputType(inputType) {
     return this.data.setInputType(inputType, this.party.members.map(member => member.jid));
   }
 
+  /**
+   * Change BattlePass parameters.
+   * @param {boolean} show
+   * @param {number} passLevel
+   * @param {number} selfBoostXp
+   * @param {number} friendBoostXp
+   */
   async setBattlePass(show, passLevel, selfBoostXp, friendBoostXp) {
     return this.data.setBattlePass(
       show, passLevel, selfBoostXp, friendBoostXp,
@@ -44,26 +74,37 @@ class PartyMember extends User {
     );
   }
 
+  /**
+   * Playing emote in lobby. Emote will be infinity playing. 
+   * @param {string} asset e.g. `/Game/Athena/Items/Cosmetics/Dances/EID_KPopDance01.EID_KPopDance01`
+   */
   async setEmote(asset) {
     return this.data.setEmote(asset, this.party.members.map(member => member.jid));
   }
 
+  /**
+   * Stop playing emote.
+   */
   async clearEmote() {
     return this.data.clearEmote(this.party.members.map(member => member.jid));
   }
 
   /**
-   * @function Kick a party member, or leaves if member is the bot
+   * Kick a party member, or leaves if member is the bot
+   * @returns {boolean}
    */
   async kick() {
 
-    if (this.party.leader != this.client.account.id) return; // cannot kick if not party leader
+    if (this.party.leader !== this.client.account.id) return false; // cannot kick if not party leader
 
-    if (this.id == this.client.account.id) return this.party.exit(true);
+    if (this.id === this.client.account.id) {
+      this.party.exit(true);
+      return true;
+    }
 
     const sending = [];
-
-    let kickPayload = JSON.stringify({
+    
+    const body = JSON.stringify({
   
       type: 'com.epicgames.party.memberexited',
 
@@ -73,21 +114,21 @@ class PartyMember extends User {
         wasKicked: true,
       },
 
-      timestamp: new Date()
+      timestamp: new Date(),
 
     });
 
-    this.party.members.forEach(member => {
-      var to = member.jid;
+    this.party.members.forEach((member) => {
       sending.push(
         this.communicator.sendRequest({
-          to,
-          body: kickPayload
-        })
+          to: member.jid,
+          body,
+        }),
       );
     });
 
-    return Promise.all(sending);
+    await Promise.all(sending);
+    return true;
   }
 
   async promote(leaderLeaving) {

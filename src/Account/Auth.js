@@ -16,7 +16,7 @@ class AccountAuth {
     
   }
 
-  async auth(twoFactorCode) {
+  async auth(credentials) {
     
     try {
 
@@ -36,8 +36,8 @@ class AccountAuth {
         linkExtAuth: null,
         client_id: this.client.auth.clientId,
         redirectUrl: `${ENDPOINT.LOGIN_FRONTEND}/login/showPleaseWait?client_id=${this.client.auth.clientId}&rememberEmail=false`,
-        epic_username: this.client.config.email,
-        password: this.client.config.password,
+        epic_username: credentials.email,
+        password: credentials.password,
         rememberMe: 'NO',
       }, true, {
         'X-XSRF-TOKEN': token,
@@ -57,7 +57,7 @@ class AccountAuth {
 
           const twoFactorFormElement = $('#twoFactorForm');
           if (twoFactorFormElement.length) {
-            data = await this.submitTwoFactorCode(token, twoFactorFormElement, twoFactorCode);
+            data = await this.submitTwoFactorCode(token, twoFactorFormElement, credentials.twoFactorCode);
           } else throw new Error('[Account Authorization] Cannot get "please wait" redirection URL!');
 
         }

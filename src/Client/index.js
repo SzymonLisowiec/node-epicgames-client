@@ -168,7 +168,7 @@ class Client extends Events {
     await this.http.send(
       'DELETE',
       `${ENDPOINT.OAUTH_SESSIONS_KILL}/${this.account.auth.accessToken}`,
-      `${this.account.auth.token_type} ${this.account.auth.accessToken}`,
+      `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
     );
     
     return true;

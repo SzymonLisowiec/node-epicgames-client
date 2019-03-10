@@ -168,9 +168,9 @@ class PartyMemberData {
     return true;
   }
 
-  setBackpack(backblingAsset, jid) {
+  setBackpack(backpackAsset, jid) {
 
-    this.payload.Attrs.AthenaCosmeticLoadout_j.AthenaCosmeticLoadout.backpackDefinition = `AthenaBackpackItemDefinition'${backblingAsset}'`;
+    this.payload.Attrs.AthenaCosmeticLoadout_j.AthenaCosmeticLoadout.backpackDefinition = `AthenaBackpackItemDefinition'${backpackAsset}'`;
       
     const part = {
       

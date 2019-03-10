@@ -168,6 +168,27 @@ class PartyMemberData {
     return true;
   }
 
+  setBackpack(backblingAsset, jid) {
+
+    this.payload.Attrs.AthenaCosmeticLoadout_j.AthenaCosmeticLoadout.backpackDefinition = `AthenaBackpackItemDefinition'${backblingAsset}'`;
+      
+    const part = {
+      
+      Attrs: {
+        AthenaCosmeticLoadout_j: this.payload.Attrs.AthenaCosmeticLoadout_j,
+      },
+
+    };
+
+    if (!jid) return false;
+
+    if (Array.isArray(jid)) {
+      jid.forEach(j => this.sendPart(part, j));
+    } else this.sendPart(part, jid);
+
+    return true;
+  }
+
   /**
    * This method currently not working.
    */

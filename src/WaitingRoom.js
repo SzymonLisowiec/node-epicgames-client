@@ -48,10 +48,6 @@ class WaitingRoom {
 
       });
 
-    }).catch(() => {
-
-      this.debug.print('Error while sending query to the waiting room.');
-
     });
     
   }

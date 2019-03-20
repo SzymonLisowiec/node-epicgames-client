@@ -34,6 +34,7 @@ class Client extends Events {
       password: null,
       debug: null,
       useWaitingRoom: true,
+      useCommunicator: true,
 
       http: {},
 
@@ -81,8 +82,13 @@ class Client extends Events {
 
       let wait = false;
       if (this.config.useWaitingRoom) {
-        const waitingRoom = new WaitingRoom(this, ENDPOINT.WAITING_ROOM);
-        wait = await waitingRoom.needWait();
+        try {
+          const waitingRoom = new WaitingRoom(this, ENDPOINT.WAITING_ROOM);
+          wait = await waitingRoom.needWait();
+        } catch (error) {
+          this.debug.print(new Error(`WaitingRoom error: ${error}`));
+          return false;
+        }
       }
 
       if (wait) {
@@ -181,9 +187,11 @@ class Client extends Events {
     const auth = await this.account.authorize(credentials);
 
     if (auth) {
-      
-      this.communicator = new Communicator(this);
-      await this.communicator.connect();
+
+      if (this.config.useCommunicator) {
+        this.communicator = new Communicator(this);
+        await this.communicator.connect();
+      }
 
       this.entitlements = await this.getEntitlements();
 
@@ -214,6 +222,11 @@ class Client extends Events {
    * @return {boolean} True if success.
    */
   async logout() {
+
+    if (!this.account) return false;
+
+    if (this.account.auth.tokenTimeout) clearTimeout(this.account.auth.tokenTimeout);
+    if (this.communicator) await this.communicator.disconnect();
 
     await this.http.send(
       'DELETE',

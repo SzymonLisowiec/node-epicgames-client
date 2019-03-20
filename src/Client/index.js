@@ -226,13 +226,17 @@ class Client extends Events {
     if (!this.account) return false;
 
     if (this.account.auth.tokenTimeout) clearTimeout(this.account.auth.tokenTimeout);
-    if (this.communicator) await this.communicator.disconnect();
+    if (this.communicator) await this.communicator.disconnect(false, true);
 
     await this.http.send(
       'DELETE',
       `${ENDPOINT.OAUTH_SESSIONS_KILL}/${this.account.auth.accessToken}`,
       `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
     );
+
+    this.emit('logouted');
+
+    this.removeAllListeners();
     
     return true;
   }

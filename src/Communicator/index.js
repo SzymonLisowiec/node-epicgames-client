@@ -156,12 +156,15 @@ class Communicator extends EventEmitter {
     });
   }
 
-  disconnect(isAlreadyDisconnected) {
+  disconnect(isAlreadyDisconnected, removeAllListeners) {
     return new Promise((resolve) => {
       
       this.stream.off('disconnected');
       this.stream.off('session:end');
       this.stream.off('session:started');
+      this.stream.off('session:bound');
+
+      if (removeAllListeners) this.removeAllListeners();
 
       if (typeof isAlreadyDisconnected !== 'undefined' && isAlreadyDisconnected) {
         resolve();

@@ -40,6 +40,14 @@ class PartyMember extends User {
   }
 
   /**
+   * Change character's backpack.
+   * @param {string} asset e.g. `/Game/Athena/Items/Cosmetics/Backpacks/BID_146_AnimalJacketsFemale.BID_146_AnimalJacketsFemale`
+   */
+  async setBackpack(asset) {
+    return this.data.setBackpack(asset, this.party.members.map(member => member.jid));
+  }
+
+  /**
    * Change player's banner.
    * @param {string} id e.g. `standardbanner15`
    * @param {String} color e.g. `defaultcolor15`

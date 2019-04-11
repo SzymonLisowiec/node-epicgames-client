@@ -128,6 +128,12 @@ class AccountAuth {
       
       const $ = Cheerio.load(data);
       const fieldValidationErrorElements = $('label.fieldValidationError');
+      let generalExceptionError = $('.errorCodes.generalExceptionError');
+
+      if (generalExceptionError.length) {
+        generalExceptionError = generalExceptionError.eq(0).text().trim();
+        throw new Error(`Error while registration. Message: ${generalExceptionError}`);
+      }
 
       if (fieldValidationErrorElements.length) {
         throw new Error(`Error while registration. Field: ${fieldValidationErrorElements.eq(0).attr('for')} Message: ${fieldValidationErrorElements.eq(0).text()}`);

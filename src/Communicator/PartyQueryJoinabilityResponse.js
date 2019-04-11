@@ -11,7 +11,7 @@ class PartyQueryJoinabilityResponse {
     this.partyId = data.partyId;
     this.isJoinable = data.isJoinable;
 
-    this.rejectionType = data.rejectionRype;
+    this.rejectionType = data.rejectionType;
     this.resultParam = data.resultParam;
     
     this.time = data.time;

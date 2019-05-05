@@ -76,12 +76,12 @@ class PartyMemberData {
   
   setReady(isReady, jid) {
 
-    this.payload.Attrs.IsReadyAthena_b = isReady;
+    this.payload.Attrs.GameReadiness_s = isReady ? 'Ready' : 'NotReady';
     
     const part = {
       
       Attrs: {
-        IsReadyAthena_b: this.payload.Attrs.IsReadyAthena_b,
+        GameReadiness_s: this.payload.Attrs.GameReadiness_s,
         ReadyInputType_s: this.payload.Attrs.ReadyInputType_s,
       },
 
@@ -336,10 +336,28 @@ class PartyMemberData {
 
         NumAthenaPlayersLeft_U: '0',
         UtcTimeStartedMatchAthena_s: new Date('0001-01-01T00:00:00.000Z'),
-        IsReadyAthena_b: false,
+        GameReadiness_s: 'NotReady',
         HiddenMatchmakingDelayMax_U: '0',
         ReadyInputType_s: 'Count',
         CurrentInputType_s: 'MouseAndKeyboard',
+
+        AssistedChallengeInfo_j: {
+          AssistedChallengeInfo: {
+            questItemDef: 'None',
+            objectivesCompleted: 0,
+          },
+        },
+
+        MemberSquadAssignmentRequest_j: {
+          MemberSquadAssignmentRequest: {
+            MemberSquadAssignmentRequest: {
+              startingAbsoluteIdx: -1,
+              targetAbsoluteIdx: -1,
+              swapTargetMemberId: 'INVALID',
+              version: 0,
+            },
+          },
+        },
 
         AthenaCosmeticLoadout_j: { // BR CHARACTER LOADOUT
 

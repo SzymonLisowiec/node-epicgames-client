@@ -374,7 +374,7 @@ class Communicator extends EventEmitter {
               accountId: stanza.from.local,
               jid: stanza.from,
               partyId: body.payload.partyId,
-              rejectionRype: body.payload.rejectionType,
+              rejectionType: body.payload.rejectionType,
               resultParam: body.payload.resultParam,
               time: new Date(body.timestamp),
             };

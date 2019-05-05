@@ -98,10 +98,12 @@ class PartyMemberData {
 
   setEmote(emoteAsset, jid) {
 
-    this.payload.Attrs.FrontendEmote_j.FrontendEmote = {
-      emoteItemDef: `AthenaDanceItemDefinition'${emoteAsset}'`,
-      emoteItemDefEncryptionKey: '',
-      emoteSection: -2,
+    this.payload.Attrs.FrontendEmote_j = {
+      FrontendEmote: {
+        emoteItemDef: `AthenaDanceItemDefinition'${emoteAsset}'`,
+        emoteItemDefEncryptionKey: '',
+        emoteSection: -2,
+      },
     };
 
     const part = {
@@ -123,10 +125,12 @@ class PartyMemberData {
 
   clearEmote(jid) {
 
-    this.payload.Attrs.FrontendEmote_j.FrontendEmote = {
-      emoteItemDef: 'None',
-      emoteItemDefEncryptionKey: '',
-      emoteSection: -1,
+    this.payload.Attrs.FrontendEmote_j = {
+      FrontendEmote: {
+        emoteItemDef: 'None',
+        emoteItemDefEncryptionKey: '',
+        emoteSection: -1,
+      },
     };
     
     const part = {

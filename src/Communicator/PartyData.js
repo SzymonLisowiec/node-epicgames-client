@@ -241,6 +241,7 @@ class PartyData {
             playlistName: 'Playlist_DefaultDuo',
             tournamentId: '',
             eventWindowId: '',
+            regionId: 'EU',
           },
         },
 
@@ -249,6 +250,20 @@ class PartyData {
         AthenaSquadFill_b: false,
         PartyIsJoinedInProgress_b: false,
         GameSessionKey_s: '',
+        // VoiceChannelGuid_s: '28BFC13749ECB3B0F2DBE8A8F62FDCD0',
+
+        RawSquadAssignments_j: {
+          RawSquadAssignments: [],
+        },
+        // RawSquadAssignments_j: {  
+        //   RawSquadAssignments: [  
+        //     {  
+        //       memberId: '9a1d43b1d826420e9fa393a79b74b2ff',
+        //       absoluteMemberIdx: 0,
+        //     },
+        //   ],
+        // },
+        // TODO: Add full support for RawSquadAssignments_j.RawSquadAssignments
 
         PrivacySettings_j: {
           PrivacySettings: {

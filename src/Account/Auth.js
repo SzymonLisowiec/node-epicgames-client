@@ -119,6 +119,7 @@ class AccountAuth {
           displayName: options.displayName,
           email: options.email,
           password: options.password,
+          'g-recaptcha-response': options.recaptchaResponse,
           termsAgree: 'yes',
           register: 'sign in',
         }, true, {

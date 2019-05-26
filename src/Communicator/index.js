@@ -8,21 +8,10 @@ const Friend = require('../Friend');
 const FriendRequest = require('../FriendRequest');
 const FriendMessage = require('./FriendMessage');
 
-const Party = require('./Party');
-const PartyInvitation = require('./PartyInvitation');
-const PartyJoinRequest = require('./PartyJoinRequest');
-const PartyJoinRequestApproved = require('./PartyJoinRequestApproved');
-const PartyJoinAcknowledged = require('./PartyJoinAcknowledged');
-const PartyJoinAcknowledgedResponse = require('./PartyJoinAcknowledgedResponse');
-const PartyMemberData = require('./PartyMemberData');
-const PartyMemberJoined = require('./PartyMemberJoined');
-const PartyMemberExited = require('./PartyMemberExited');
-const PartyMemberPromoted = require('./PartyMemberPromoted');
-const PartyData = require('./PartyData');
-const PartyQueryJoinability = require('./PartyQueryJoinability');
-const PartyQueryJoinabilityResponse = require('./PartyQueryJoinabilityResponse');
-const PartyInvitationResponse = require('./PartyInvitationResponse');
-const PartyUpdateConfirmation = require('./PartyUpdateConfirmation');
+const Party = require('../Party');
+const PartyInvitation = require('../Party/PartyInvitation');
+const Member = require('../Party/Member');
+const PartyMemberConfirmation = require('../Party/MemberConfimation');
 
 class Communicator extends EventEmitter {
 
@@ -33,12 +22,12 @@ class Communicator extends EventEmitter {
 
     const uuid = this.generateUUID();
 
-    if (this.app.appName === 'Launcher') {
-      this.client = this.app;
+    if (this.app.id === 'Launcher') {
+      this.launcher = this.app;
       this.resource = `V2:launcher:WIN::${uuid}`;
     } else {
-      this.client = this.app.launcher;
-      this.resource = `V2:${this.app.appName}:WIN::${uuid}`;
+      this.launcher = this.app.launcher;
+      this.resource = `V2:${this.app.id}:WIN::${uuid}`;
     }
     
     this.host = host || 'prod.ol.epicgames.com';
@@ -52,10 +41,6 @@ class Communicator extends EventEmitter {
 
   makeJID(...args) {
     return new JID(...args);
-  }
-
-  getClient() {
-    return this.client;
   }
 
   async makeParty(options) { // EXPERIMENTAL
@@ -72,10 +57,10 @@ class Communicator extends EventEmitter {
         server: this.host,
   
         credentials: {
-          jid: `${this.client.account.id}@${this.host}`,
+          jid: `${this.launcher.account.id}@${this.host}`,
           host: this.host,
-          username: this.client.account.id,
-          password: authToken || this.client.account.auth.accessToken,
+          username: this.launcher.account.id,
+          password: authToken || this.launcher.account.auth.accessToken,
         },
 
         resource: this.resource,
@@ -102,7 +87,7 @@ class Communicator extends EventEmitter {
 
         this.emit('connected');
 
-        this.client.debug.print(`Communicator[${this.resource}]: Connected`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Connected`);
 
       });
 
@@ -110,8 +95,8 @@ class Communicator extends EventEmitter {
 
         this.emit('disconnected');
 
-        this.client.debug.print(`Communicator[${this.resource}]: Disconnected`);
-        this.client.debug.print(`Communicator[${this.resource}]: Trying reconnect...`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Disconnected`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Trying reconnect...`);
 
         await this.disconnect(true);
         this.stream.connect();
@@ -122,10 +107,10 @@ class Communicator extends EventEmitter {
 
         this.emit('session:ended');
 
-        this.client.debug.print(`Communicator[${this.resource}]: Session ended`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Session ended`);
 
-        this.client.debug.print(`Communicator[${this.resource}]: There will be try of restart connection to obtain new session (at the moment I'm only testing this solution).`);
-        this.client.debug.print(`Communicator[${this.resource}]: Trying restart connection to obtain new session...`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: There will be try of restart connection to obtain new session (at the moment I'm only testing this solution).`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Trying restart connection to obtain new session...`);
         
         await this.disconnect();
         this.stream.connect();
@@ -136,7 +121,7 @@ class Communicator extends EventEmitter {
 
         this.emit('session:started');
 
-        this.client.debug.print(`Communicator[${this.resource}]: Session started`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Session started`);
 
         await this.refreshFriendsList();
         await this.updateStatus();
@@ -148,7 +133,7 @@ class Communicator extends EventEmitter {
 
         this.emit('session:bound');
 
-        this.client.debug.print(`Communicator[${this.resource}]: Session bounded`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Session bounded`);
       });
       
       this.stream.connect();
@@ -175,7 +160,7 @@ class Communicator extends EventEmitter {
 
       this.stream.once('disconnected', () => {
 
-        this.client.debug.print(`Communicator[${this.resource}]: Disconnected`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Disconnected`);
         
         resolve();
 
@@ -229,7 +214,7 @@ class Communicator extends EventEmitter {
 
   listenMessages() {
 
-    this.stream.on('message', (stanza) => {
+    this.stream.on('message', async (stanza) => {
       
       if (stanza.type === 'normal') {
 
@@ -237,295 +222,150 @@ class Communicator extends EventEmitter {
 
         switch (body.type) {
 
-          case 'com.epicgames.friends.core.apiobjects.Friend':
-            /*
-            {
-              payload: {
-                accountId: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                status: 'PENDING',
-                direction: 'INBOUND',
-                created: '2018-10-19T12:01:42.551Z',
-                favorite: false
-              },
-              
-              type: 'com.epicgames.friends.core.apiobjects.Friend',
-              timestamp: '2018-10-19T12:01:42.553Z'
+          case 'com.epicgames.social.party.notification.v0.MEMBER_LEFT': {
+
+            if (this.app.id === 'Launcher') break;
+            if (!this.app.party || this.app.party.id !== body.party_id) break;
+
+            const member = this.app.party.findMember(body.account_id);
+            if (!member) break;
+            this.app.party.removeMember(member);
+
+            this.emit('party:member:left', member);
+            this.emit(`party#${this.app.party.id}:member:left`, member);
+
+          } break;
+
+          case 'com.epicgames.social.party.notification.v0.MEMBER_NEW_CAPTAIN': {
+
+            if (this.app.id === 'Launcher') break;
+            if (!this.app.party || this.app.party.id !== body.party_id) break;
+
+            const member = this.app.party.findMember(body.account_id);
+            if (!member) break;
+            member.role = 'CAPTAIN';
+
+            this.emit('party:member:promoted', member);
+            this.emit(`party#${this.app.party.id}:member:promoted`, member);
+
+          } break;
+
+          case 'com.epicgames.social.party.notification.v0.MEMBER_KICKED': {
+
+            if (this.app.id === 'Launcher') break;
+            if (!this.app.party || this.app.party.id !== body.party_id) break;
+
+            const member = this.app.party.findMember(body.account_id);
+            if (!member) break;
+            this.app.party.removeMember(member);
+
+            if (member.id === this.app.launcher.account.id) {
+              this.app.party = await Party.create(this.app);
             }
-            */
+
+            this.emit('party:member:kicked', member);
+            this.emit(`party#${this.app.party.id}:member:kicked`, member);
+
+          } break;
+
+          case 'com.epicgames.social.party.notification.v0.PARTY_UPDATED':
+
+            if (this.app.id === 'Launcher') break;
+            if (!this.app.party || this.app.party.id !== body.party_id) break;
+            
+            this.app.party.update(body, true);
+
             break;
 
-          case 'com.epicgames.friends.core.apiobjects.FriendRemoval':
-            /*
-            {
-              payload: {
-                 accountId: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                 reason: 'DELETED'
-              },
-              
-              type: 'com.epicgames.friends.core.apiobjects.FriendRemoval',
-              timestamp: '2018-10-25T15:43:12.114Z'
-            }
-            */
+          case 'com.epicgames.social.party.notification.v0.MEMBER_STATE_UPDATED': {
+            
+            if (this.app.id === 'Launcher') break;
+            if (!this.app.party || this.app.party.id !== body.party_id) break;
+            
+            const member = this.app.party.findMember(body.account_id);
+            if (!member) break;
+
+            member.update(body, true);
+
+            this.emit('party:member:state:updated', member);
+            this.emit(`party#${this.app.party.id}:member:state:updated`, member);
+            this.emit(`party#${this.app.party.id}:member#${member.id}:state:updated`, member);
+
+          } break;
+
+          case 'com.epicgames.social.party.notification.v0.MEMBER_JOINED': {
+
+            if (this.app.id === 'Launcher') break;
+            if (!this.app.party || this.app.party.id !== body.party_id) break;
+
+            const member = new Member(this.app.party, body);
+            this.app.party.addMember(member);
+
+            this.emit('party:member:joined', member);
+            this.emit(`party#${this.app.party.id}:member:joined`, member);
+
+          } break;
+
+          case 'com.epicgames.social.party.notification.v0.MEMBER_REQUIRE_CONFIRMATION': {
+
+            if (this.app.id === 'Launcher') break;
+            if (!this.app.party || this.app.party.id !== body.party_id) break;
+
+            const payload = {
+              connection: body.connection,
+              revision: body.revision,
+              accountId: body.account_id,
+              accountName: body.account_dn,
+              jid: stanza.from,
+              time: new Date(body.sent),
+            };
+
+            const confirmation = new PartyMemberConfirmation(this.app.party, payload);
+            confirmation.confirm();
+
+          } break;
+
+          case 'com.epicgames.social.party.notification.v0.INITIAL_INVITE': {
+
+            if (this.app.id === 'Launcher') break;
+
+            const party = await Party.lookup(this.app, body.party_id);
+            const invitation = new PartyInvitation(party, {
+              appId: body.ns,
+              meta: body.meta,
+              accountId: body.inviter_id,
+              accountName: body.inviter_dn,
+              jid: stanza.from,
+              time: new Date(body.sent),
+            });
+
+            this.emit('party:invitation', invitation);
+            this.emit(`party#${party.id}:invitation`, invitation);
+            this.emit(`party#${party.id}:invitation#${body.invitee_id}`, invitation);
+
+          } break;
+
+          case 'com.epicgames.social.party.notification.v0.INVITE_CANCELLED':
+
+            if (this.app.id === 'Launcher') break;
+
+            this.emit('party:invitation:canceled');
+            this.emit(`party#${body.party_id}:invitation:canceled`);
+            this.emit(`party#${body.party_id}:invitation#${body.invitee_id}:canceled`);
+
             break;
 
-          case 'com.epicgames.party.invitation': {
+          case 'com.epicgames.social.party.notification.v0.INVITE_DECLINED':
 
-            const payload = {
-              accountId: stanza.from.local,
-              accountName: body.payload.displayName,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              partyTypeId: body.payload.partyTypeId,
-              accessKey: body.payload.accessKey,
-              appId: body.payload.appId,
-              buildId: body.payload.buildId,
-              time: new Date(body.timestamp),
-            };
+            if (this.app.id === 'Launcher') break;
 
-            payload.party = new Party(this, payload);
+            this.emit('party:invitation:declined');
+            this.emit(`party#${body.party_id}:invitation#${body.invitee_id}:declined`);
 
-            this.emit('party:invitation', new PartyInvitation(this, payload));
-            this.emit(`party#${payload.partyId}:invitation`, new PartyInvitation(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.invitationresponse': {
-            
-            const payload = {
-              accountId: stanza.from.local,
-              accountName: body.payload.displayName,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              response: body.payload.response, // 2 = rejected
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:invitation:response', new PartyInvitationResponse(this, payload));
-            this.emit(`party#${payload.partyId}:invitation:response`, new PartyInvitationResponse(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.joinrequest': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              displayName: body.payload.displayName,
-              partyId: body.payload.partyId,
-              platform: body.payload.platform,
-              accessKey: body.payload.accessKey,
-              appId: body.payload.appId,
-              buildId: body.payload.buildId,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:join:request', new PartyJoinRequest(this, payload));
-            this.emit(`party#${payload.partyId}:join:request`, new PartyJoinRequest(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.joinrequest.approved': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              partyTypeId: body.payload.partyTypeId,
-              accessKey: body.payload.accessKey,
-              presencePermissions: body.payload.presencePermissions,
-              invitePermissions: body.payload.invitePermissions,
-              partyFlags: body.payload.partyFlags,
-              notAcceptingMemberReason: body.payload.notAcceptingMembersReason,
-              maxMembers: body.payload.maxMembers,
-              password: body.payload.password,
-              members: body.payload.members,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:join:approved', new PartyJoinRequestApproved(this, payload));
-            this.emit(`party#${payload.partyId}:join:approved`, new PartyJoinRequestApproved(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.updatepartyconfiguration': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              accessKey: body.payload.accessKey,
-              presencePermissions: body.payload.presencePermissions,
-              invitePermissions: body.payload.invitePermissions,
-              partyFlags: body.payload.partyFlags,
-              notAcceptingMemberReason: body.payload.notAcceptingMembersReason,
-              maxMembers: body.payload.maxMembers,
-              password: body.payload.password,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:updatepartyconfiguration', new PartyUpdateConfirmation(this, payload));
-            this.emit(`party#${payload.partyId}:updatepartyconfiguration`, new PartyUpdateConfirmation(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.joinrequest.rejected': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              rejectionType: body.payload.rejectionType,
-              resultParam: body.payload.resultParam,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:join:rejected', new PartyMemberJoined(this, payload));
-            this.emit(`party#${payload.partyId}:join:rejected`, new PartyMemberJoined(this, payload));
-          
-          } break;
-
-          case 'com.epicgames.party.memberjoined': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              member: body.payload.member,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:member:joined', new PartyMemberJoined(this, payload));
-            this.emit(`party#${payload.partyId}:member:joined`, new PartyMemberJoined(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.memberexited': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              memberId: body.payload.memberId,
-              wasKicked: body.payload.wasKicked,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:member:exited', new PartyMemberExited(this, payload));
-            this.emit(`party#${payload.partyId}:member:exited`, new PartyMemberExited(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.memberpromoted': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              member: body.payload.promotedMemberUserId,
-              leaderLeaving: body.payload.fromLeaderLeaving,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:member:promoted', new PartyMemberPromoted(this, payload));
-            this.emit(`party#${payload.partyId}:member:promoted`, new PartyMemberPromoted(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.data': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              payload: body.payload.payload,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:data', new PartyData(this, payload));
-            this.emit(`party#${payload.partyId}:data`, new PartyData(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.memberdata': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              payload: body.payload.payload,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:member:data', new PartyMemberData(this, payload));
-            this.emit(`party#${payload.partyId}:member:data`, new PartyMemberData(this, payload));
-            
-          } break;
-
-          case 'com.epicgames.party.queryjoinability': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              accessKey: body.payload.accessKey,
-              appId: body.payload.appId,
-              buildId: body.payload.buildId,
-              joinData: body.payload.joinData,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:query:joinability', new PartyQueryJoinability(this, payload));
-            this.emit(`party#${payload.partyId}:query:joinability`, new PartyQueryJoinability(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.queryjoinability.response': {
-
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              isJoinable: body.payload.isJoinable,
-              rejectionType: body.payload.rejectionType,
-              resultParam: body.payload.resultParam,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:queryjoinability:response', new PartyQueryJoinabilityResponse(this, payload));
-            this.emit(`party#${payload.partyId}:queryjoinability:response`, new PartyQueryJoinabilityResponse(this, payload));
-            
-          } break;
-
-          case 'com.epicgames.party.joinacknowledged': {
-            
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:joinacknowledged', new PartyJoinAcknowledged(this, payload));
-            this.emit(`party#${payload.partyId}:joinacknowledged`, new PartyJoinAcknowledged(this, payload));
-
-          } break;
-
-          case 'com.epicgames.party.joinacknowledged.response': {
-            
-            const payload = {
-              accountId: stanza.from.local,
-              jid: stanza.from,
-              partyId: body.payload.partyId,
-              time: new Date(body.timestamp),
-            };
-
-            this.emit('party:joinacknowledged:response', new PartyJoinAcknowledgedResponse(this, payload));
-            this.emit(`party#${payload.partyId}:joinacknowledged:response`, new PartyJoinAcknowledgedResponse(this, payload));
-
-          } break;
+            break;
 
           case 'FRIENDSHIP_REMOVE':
-            this.emit('friend:removed', new Friend(this.client, {
+            this.emit('friend:removed', new Friend(this.launcher, {
               accountId: body.from,
               status: 'REMOVED',
               time: new Date(body.timestamp),
@@ -537,7 +377,7 @@ class Communicator extends EventEmitter {
             
             if (body.status === 'ACCEPTED') {
               
-              this.emit('friend:added', new Friend(this.client, {
+              this.emit('friend:added', new Friend(this.launcher, {
                 accountId: body.to,
                 status: body.status,
                 time: new Date(body.timestamp),
@@ -545,9 +385,9 @@ class Communicator extends EventEmitter {
 
             } else {
 
-              this.emit('friend:request', new FriendRequest(this.client, {
-                accountId: this.client.account.id === body.from ? body.to : body.from,
-                direction: this.client.account.id === body.from ? 'OUTGOING' : 'INCOMING',
+              this.emit('friend:request', new FriendRequest(this.launcher, {
+                accountId: this.launcher.account.id === body.from ? body.to : body.from,
+                direction: this.launcher.account.id === body.from ? 'OUTGOING' : 'INCOMING',
                 status: body.status,
                 time: new Date(body.timestamp),
               }));
@@ -556,7 +396,7 @@ class Communicator extends EventEmitter {
             break;
 
           default:
-            this.client.debug.print(`Communicator[${this.resource}]: Unexpected \`message\` type: ${body.type}`);
+            this.launcher.debug.print(`Communicator[${this.resource}]: Unexpected \`message\` type: ${body.type}`);
             break;
 
         }
@@ -572,13 +412,13 @@ class Communicator extends EventEmitter {
 
       } else if (stanza.type === 'error') {
 
-        this.client.debug.print(`Communicator[${this.resource}]: Stanza error!`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Stanza error!`);
         // eslint-disable-next-line no-console
         console.dir(stanza);
         
       } else {
 
-        this.client.debug.print(`Communicator[${this.resource}]: Unknown stanza type!`);
+        this.launcher.debug.print(`Communicator[${this.resource}]: Unknown stanza type!`);
         // eslint-disable-next-line no-console
         console.dir(stanza);
 

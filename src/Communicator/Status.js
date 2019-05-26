@@ -5,9 +5,9 @@ class Status {
   constructor(communicator, data) {
         
     this.communicator = communicator;
-    this.client = this.communicator.getClient();
+    this.launcher = this.communicator.launcher;
     
-    this.sender = new User(this.client, data);
+    this.sender = new User(this.launcher, data);
 
     this.state = data.state;
 
@@ -32,7 +32,7 @@ class Status {
       try {
         status = JSON.parse(rawStatus);
       } catch (err) {
-        this.client.debug.print(`Communicator[${this.communicator.resource}]: Cannot parse status's JSON for presentence. (${rawStatus})`);
+        this.launcher.debug.print(`Communicator[${this.communicator.resource}]: Cannot parse status's JSON for presentence. (${rawStatus})`);
       }
     }
 

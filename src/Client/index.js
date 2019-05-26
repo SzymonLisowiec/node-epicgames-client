@@ -25,7 +25,7 @@ class Client extends Events {
   constructor(config) {
     super(config);
 
-    this.appName = 'Launcher';
+    this.id = 'Launcher';
     this.libraryName = 'epicgames-client';
 
     this.config = {

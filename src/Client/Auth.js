@@ -2,9 +2,9 @@ const ENDPOINT = require('../../resources/Endpoint');
 
 class AccountAuth {
 
-  constructor(client) {
+  constructor(launcher) {
 
-    this.client = client;
+    this.launcher = launcher;
 
   }
 
@@ -12,7 +12,7 @@ class AccountAuth {
 
     try {
 
-      const { data } = await this.client.http.sendPost(ENDPOINT.OAUTH_TOKEN, 'launcher', {
+      const { data } = await this.launcher.http.sendPost(ENDPOINT.OAUTH_TOKEN, 'launcher', {
         grant_type: 'client_credentials',
         token_type: 'eg1',
       });
@@ -33,7 +33,7 @@ class AccountAuth {
 
     } catch (err) {
 
-      this.client.debug.print(new Error(err));
+      this.launcher.debug.print(new Error(err));
 
     }
     

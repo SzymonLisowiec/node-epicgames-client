@@ -1,16 +1,16 @@
 class User {
 
-  constructor(client, data) {
+  constructor(launcher, data) {
     
-    this.client = client;
+    this.launcher = launcher;
 
     if (typeof data !== 'object') {
 
       if (data === 'me') {
 
         data = {
-          accountId: this.client.account.id,
-          displayName: this.client.account.displayName,
+          accountId: this.launcher.account.id,
+          displayName: this.launcher.account.displayName,
         };
 
       } else {
@@ -31,9 +31,9 @@ class User {
 
     this.jid = data.jid || null;
 
-    if (!this.jid && this.client.communicator) {
+    if (!this.jid && this.launcher.communicator) {
 
-      this.jid = `${this.id}@${this.client.communicator.host}`;
+      this.jid = `${this.id}@${this.launcher.communicator.host}`;
       if (data.xmppResource) this.jid = `${this.jid}/${data.xmppResource}`;
 
     }
@@ -51,7 +51,7 @@ class User {
   }
 
   async fetch() {
-    const data = await this.client.getProfile(this.id);
+    const data = await this.launcher.getProfile(this.id);
     if (data) this.update(data);
   }
 
@@ -63,17 +63,17 @@ class User {
     return this.displayName;
   }
 
-  static async get(client, user) {
+  static async get(launcher, user) {
 
-    if (typeof user === 'string' && client.isDisplayName(user)) {
+    if (typeof user === 'string' && launcher.isDisplayName(user)) {
 
-      const account = await client.lookup(user);
-      if (account) return new this(client, account);
+      const account = await launcher.lookup(user);
+      if (account) return new this(launcher, account);
       return false;
 
     }
 
-    return new this(client, user);
+    return new this(launcher, user);
   }
 
 }

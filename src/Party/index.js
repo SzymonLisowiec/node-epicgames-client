@@ -16,6 +16,10 @@ class Party {
     this.meta = new PartyMeta(this, data.meta);
   }
 
+  get leader() {
+    return this.members.find(member => member.role === 'CAPTAIN');
+  }
+
   findMember(id) {
     return this.members.find(member => member.id === id);
   }
@@ -88,10 +92,11 @@ class Party {
         revision: this.revision,
       },
     );
+    this.revision += 1;
   }
 
   update(data) {
-    this.revision = data.revision;
+    if (data.revision > this.revision) this.revision = data.revision;
     this.config.joinability = data.party_privacy_type;
     this.config.maxSize = data.max_number_of_members;
     this.meta.update(data.party_state_updated, true);

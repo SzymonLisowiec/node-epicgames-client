@@ -18,7 +18,7 @@ class Member {
   }
 
   update(data) {
-    this.revision = data.revision;
+    if (data.revision > this.revision) this.revision = data.revision;
     this.meta.update(data.member_state_updated, true);
   }
 
@@ -33,6 +33,7 @@ class Member {
         update: updated || this.meta.schema,
       },
     );
+    this.revision += 1;
   }
 
   checkPermissions() {

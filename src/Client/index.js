@@ -26,7 +26,6 @@ class Client extends Events {
     super(config);
 
     this.id = 'Launcher';
-    this.libraryName = 'epicgames-client';
 
     this.config = {
 
@@ -35,6 +34,7 @@ class Client extends Events {
       debug: null,
       useWaitingRoom: true,
       useCommunicator: true,
+      partyMemberConfirmation: true,
 
       http: {},
 

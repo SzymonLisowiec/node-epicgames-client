@@ -1,25 +1,20 @@
 const User = require('../User');
+const Party = require('../Party');
 
 class Status {
 
   constructor(communicator, data) {
         
     this.communicator = communicator;
+    this.app = this.communicator.app;
     this.launcher = this.communicator.launcher;
     
     this.sender = new User(this.launcher, data);
 
     this.state = data.state;
-
-    try {
-      const [, app] = data.jid.resource.toLowerCase().split(':');
-      this.app = app;
-    } catch (err) {
-      this.app = null;
-    }
     
     this.readStatus(data.status);
-        
+    
     this.time = new Date();
 
   }
@@ -43,6 +38,13 @@ class Status {
     this.sessionId = status.SessionId || null;
     this.properties = status.Properties || null;
 
+  }
+
+  async readParty() {
+    const propertyKeys = Object.keys(this.properties);
+    if (propertyKeys.length === 0) return null;
+    const joinInfoKey = propertyKeys.find(key => /^party\.\joininfodata\.([0-9]{0,})\_j$/.test(key));
+    const joinInfoData = this.properties[joinInfoKey];
   }
 
 }

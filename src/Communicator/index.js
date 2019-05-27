@@ -4,6 +4,7 @@ const UUID = require('uuid/v4');
 
 const EUserState = require('../../enums/UserState');
 
+const Status = require('./Status');
 const Friend = require('../Friend');
 const FriendRequest = require('../FriendRequest');
 const FriendMessage = require('./FriendMessage');
@@ -198,9 +199,6 @@ class Communicator extends EventEmitter {
         state = stanza.show ? EUserState.Online : EUserState.Away;
       }
       
-      // eslint-disable-next-line import/no-dynamic-require, global-require
-      const Status = require(`${this.app.libraryName}/src/Communicator/Status`);
-      
       this.emit('friend:status', new Status(this, {
         accountId: stanza.from.local,
         jid: stanza.from,
@@ -243,6 +241,9 @@ class Communicator extends EventEmitter {
 
             const member = this.app.party.findMember(body.account_id);
             if (!member) break;
+            this.app.party.members.forEach((m) => {
+              m.role = null;
+            });
             member.role = 'CAPTAIN';
 
             this.emit('party:member:promoted', member);
@@ -301,6 +302,12 @@ class Communicator extends EventEmitter {
             const member = new Member(this.app.party, body);
             this.app.party.addMember(member);
 
+            const { leader } = this.app.party;
+            if (leader && leader.id === this.app.launcher.account.id) {
+              this.app.party.meta.refreshSquadAssignments();
+              this.app.party.patch();
+            }
+
             this.emit('party:member:joined', member);
             this.emit(`party#${this.app.party.id}:member:joined`, member);
 
@@ -311,17 +318,24 @@ class Communicator extends EventEmitter {
             if (this.app.id === 'Launcher') break;
             if (!this.app.party || this.app.party.id !== body.party_id) break;
 
-            const payload = {
+            const confirmation = new PartyMemberConfirmation(this.app.party, {
               connection: body.connection,
               revision: body.revision,
               accountId: body.account_id,
               accountName: body.account_dn,
               jid: stanza.from,
               time: new Date(body.sent),
-            };
+            });
 
-            const confirmation = new PartyMemberConfirmation(this.app.party, payload);
-            confirmation.confirm();
+            const doConfirm = this.app.config.partyMemberConfirmation;
+            if (
+              (typeof doConfirm === 'boolean' && doConfirm)
+              || (typeof doConfirm === 'function' && doConfirm(confirmation))
+            ) confirmation.confirm();
+
+            this.emit('party:member:confirmation', confirmation);
+            this.emit(`party#${this.app.party.id}:member:confirmation`, confirmation);
+            this.emit(`party#${this.app.party.id}:member#${confirmation.member.id}:confirmation`, confirmation);
 
           } break;
 

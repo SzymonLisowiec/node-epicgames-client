@@ -1,0 +1,7 @@
+# Communicator
+
+// TODO
+
+## Properties
+
+## Methods

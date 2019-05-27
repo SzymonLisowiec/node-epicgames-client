@@ -8,6 +8,10 @@
 		"client",
 		"api"
 	],
+	"scripts": {
+		"docs:dev": "vuepress dev docs",
+		"docs:build": "vuepress build docs"
+	},
 	"homepage": "https://github.com/SzymonLisowiec/node-epicgames-client",
 	"bugs": {
 		"url": "https://github.com/SzymonLisowiec/node-epicgames-client/issues"

@@ -102,6 +102,14 @@ class Party {
     this.meta.update(data.party_state_updated, true);
   }
 
+  async setCustomMatchKey(...args) {
+    await this.meta.setCustomMatchKey(...args);
+  }
+
+  async setAllowJoinInProgress(...args) {
+    await this.meta.setAllowJoinInProgress(...args);
+  }
+
   static parseConfiguration(config) {
     if (!config) config = {};
     if (config.join_confirmation) {

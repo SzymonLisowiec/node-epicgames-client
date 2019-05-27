@@ -77,6 +77,18 @@ class PartyMeta extends Meta {
     });
   }
 
+  async setCustomMatchKey(key) {
+    await this.party.patch({
+      CustomMatchKey_s: key || '',
+    });
+  }
+
+  async setAllowJoinInProgress(canJoin) {
+    await this.party.patch({
+      AllowJoinInProgress_b: !!canJoin,
+    });
+  }
+  
 }
 
 module.exports = PartyMeta;

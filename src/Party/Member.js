@@ -68,6 +68,13 @@ class Member {
     });
   }
 
+  async clearEmote() {
+    this.checkPermissions();
+    await this.meta.setEmote({
+      emoteItemDef: 'None',
+    });
+  }
+
   async setBanner(level, icon, color) {
     this.checkPermissions();
     const payload = {};
@@ -91,12 +98,12 @@ class Member {
    * TODO: Add support for variants
    * [
    *  {
-   *     ownedVariantTags:{
-   *       gameplayTags:[]
-   *     },
-   *     itemVariantIsUsedFor: 'AthenaCharacterItemDefinition\'/Game/Athena/Items/Cosmetics/Characters/CID_286_Athena_Commando_F_NeonCat.CID_286_Athena_Commando_F_NeonCat\'',
-   *     variantChannelTag: {
-   *       tagName:'Cosmetics.Variant.Channel.Parts'
+   *    ownedVariantTags:{
+   *      gameplayTags:[]
+   *    },
+   *    itemVariantIsUsedFor: 'AthenaCharacterItemDefinition\'/Game/Athena/Items/Cosmetics/Characters/CID_286_Athena_Commando_F_NeonCat.CID_286_Athena_Commando_F_NeonCat\'',
+   *    variantChannelTag: {
+   *      tagName:'Cosmetics.Variant.Channel.Parts'
    *    },
    *    activeVariantTag: {
    *      tagName: 'Cosmetics.Variant.Property.Stage4'

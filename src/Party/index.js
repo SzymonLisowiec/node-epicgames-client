@@ -1,23 +1,23 @@
-const Member = require('./Member');
-const PartyInvitation = require('./PartyInvitation');
-const PartyMeta = require('./PartyMeta');
-
 class Party {
 
   constructor(app, data) {
     this.app = app;
     this.id = data.id;
-    this.config = Party.parseConfiguration(data.config);
+    this.config = this.app.Party.parseConfiguration(data.config);
     this.members = [];
-    if (Array.isArray(data.members)) data.members.forEach(member => this.members.push(new Member(this, member)));
+    if (Array.isArray(data.members)) data.members.forEach(member => this.members.push(new this.app.PartyMember(this, member)));
     this.applicants = data.applicants || [];
     this.invites = data.invites || [];
     this.revision = data.revision || 0;
-    this.meta = new PartyMeta(this, data.meta);
+    this.meta = new this.app.PartyMeta(this, data.meta);
   }
 
   get leader() {
     return this.members.find(member => member.role === 'CAPTAIN');
+  }
+
+  get me() {
+    return this.members.find(member => member.id === this.app.launcher.account.id);
   }
 
   findMember(id) {
@@ -36,7 +36,7 @@ class Party {
   }
 
   invite(accountId) {
-    return PartyInvitation.send(this, accountId);
+    return this.app.PartyInvitation.send(this, accountId);
   }
 
   async leave() {
@@ -48,14 +48,14 @@ class Party {
         connection: {
           id: this.app.communicator.stream.jid.toString(),
           meta: {
-            'urn:epic:conn:platform_s': 'WIN',
+            'urn:epic:conn:platform_s': this.app.config.platform.short,
             'urn:epic:conn:type_s': 'game',
           },
         },
         meta: {
           'urn:epic:member:dn_s': this.app.launcher.account.displayName,
           'urn:epic:member:type_s': 'game',
-          'urn:epic:member:platform_s': 'WIN',
+          'urn:epic:member:platform_s': this.app.config.platform.short,
           'urn:epic:member:joinrequest_j': '{"CrossplayPreference_i":"1"}',
         },
       },
@@ -65,14 +65,6 @@ class Party {
 
   // join() {
   // }
-
-  static async lookup(app, id) {
-    const { data } = await app.http.sendGet(
-      `https://party-service-prod.ol.epicgames.com/party/api/v1/${app.id}/parties/${id}`,
-      `${app.auth.tokenType} ${app.auth.accessToken}`,
-    );
-    return new this(app, data);
-  }
 
   async patch() {
     await this.app.http.send(
@@ -102,14 +94,6 @@ class Party {
     this.meta.update(data.party_state_updated, true);
   }
 
-  async setCustomMatchKey(...args) {
-    await this.meta.setCustomMatchKey(...args);
-  }
-
-  async setAllowJoinInProgress(...args) {
-    await this.meta.setAllowJoinInProgress(...args);
-  }
-
   static parseConfiguration(config) {
     if (!config) config = {};
     if (config.join_confirmation) {
@@ -128,9 +112,17 @@ class Party {
     };
   }
 
+  static async lookup(app, id) {
+    const { data } = await app.http.sendGet(
+      `https://party-service-prod.ol.epicgames.com/party/api/v1/${app.id}/parties/${id}`,
+      `${app.auth.tokenType} ${app.auth.accessToken}`,
+    );
+    return new this(app, data);
+  }
+
   static async create(app, config) {
     if (!app.communicator) return null;
-    config = Party.parseConfiguration(config);
+    config = app.Party.parseConfiguration(config);
     const { data } = await app.http.sendPost(
       `https://party-service-prod.ol.epicgames.com/party/api/v1/${app.id}/parties`,
       `${app.auth.tokenType} ${app.auth.accessToken}`,
@@ -144,7 +136,7 @@ class Party {
           connection: {
             id: app.communicator.stream.jid.toString(),
             meta: {
-              'urn:epic:conn:platform_s': 'WIN',
+              'urn:epic:conn:platform_s': app.config.platform.short,
               'urn:epic:conn:type_s': 'game',
             },
           },
@@ -155,7 +147,7 @@ class Party {
         },
         'urn:epic:cfg:chat-enabled_b': true,
         'urn:epic:cfg:invite-perm_s': 'None',
-        'urn:epic:cfg:build-id_s': app.buildId,
+        'urn:epic:cfg:build-id_s': app.config.netCL,
         'urn:epic:cfg:presence-perm_s': 'None',
         'urn:epic:cfg:not-accepting-members-reason_i': 0,
         'urn:epic:cfg:accepting-members_b': true,

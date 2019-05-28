@@ -39,6 +39,7 @@ class User {
     }
 
     this.displayName = data.displayName || data.accountName || null;
+    this.name = this.displayName;
 
     this.externalAuths = data.externalAuths || [];
 

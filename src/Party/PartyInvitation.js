@@ -34,9 +34,9 @@ class PartyInvitation {
       {
         'urn:epic:invite:platformdata_s': '',
         'urn:epic:member:dn_s': party.app.launcher.account.displayName,
-        'urn:epic:conn:platform_s': 'WIN',
+        'urn:epic:conn:platform_s': party.app.config.platform.short,
         'urn:epic:conn:type_s': 'game',
-        'urn:epic:cfg:build-id_s': party.app.buildId,
+        'urn:epic:cfg:build-id_s': party.app.config.netCL,
       },
     );
   }

@@ -9,11 +9,6 @@ const Friend = require('../Friend');
 const FriendRequest = require('../FriendRequest');
 const FriendMessage = require('./FriendMessage');
 
-const Party = require('../Party');
-const PartyInvitation = require('../Party/PartyInvitation');
-const Member = require('../Party/Member');
-const PartyMemberConfirmation = require('../Party/MemberConfimation');
-
 class Communicator extends EventEmitter {
 
   constructor(app, host, url) {
@@ -42,10 +37,6 @@ class Communicator extends EventEmitter {
 
   makeJID(...args) {
     return new JID(...args);
-  }
-
-  async makeParty(options) { // EXPERIMENTAL
-    return Party.make(this, options);
   }
 
   connect(authToken) {
@@ -231,6 +222,7 @@ class Communicator extends EventEmitter {
 
             this.emit('party:member:left', member);
             this.emit(`party#${this.app.party.id}:member:left`, member);
+            this.emit(`party#${this.app.party.id}:member#${member.id}:left`, member);
 
           } break;
 
@@ -248,6 +240,7 @@ class Communicator extends EventEmitter {
 
             this.emit('party:member:promoted', member);
             this.emit(`party#${this.app.party.id}:member:promoted`, member);
+            this.emit(`party#${this.app.party.id}:member#${member.id}:promoted`, member);
 
           } break;
 
@@ -261,11 +254,12 @@ class Communicator extends EventEmitter {
             this.app.party.removeMember(member);
 
             if (member.id === this.app.launcher.account.id) {
-              this.app.party = await Party.create(this.app);
+              this.app.party = await this.app.Party.create(this.app);
             }
 
             this.emit('party:member:kicked', member);
             this.emit(`party#${this.app.party.id}:member:kicked`, member);
+            this.emit(`party#${this.app.party.id}:member#${member.id}:kicked`, member);
 
           } break;
 
@@ -275,6 +269,9 @@ class Communicator extends EventEmitter {
             if (!this.app.party || this.app.party.id !== body.party_id) break;
             
             this.app.party.update(body, true);
+
+            this.emit('party:updated', this.app.party);
+            this.emit(`party#${this.app.party.id}:updated`, this.app.party);
 
             break;
 
@@ -299,17 +296,16 @@ class Communicator extends EventEmitter {
             if (this.app.id === 'Launcher') break;
             if (!this.app.party || this.app.party.id !== body.party_id) break;
 
-            const member = new Member(this.app.party, body);
-            this.app.party.addMember(member);
-
-            const { leader } = this.app.party;
-            if (leader && leader.id === this.app.launcher.account.id) {
-              this.app.party.meta.refreshSquadAssignments();
-              this.app.party.patch();
+            let member = this.app.party.findMember(body.account_id);
+            if (!member) {
+              member = new this.app.PartyMember(this.app.party, body);
+              this.app.party.addMember(member);
             }
+            await this.app.party.me.patch();
 
             this.emit('party:member:joined', member);
             this.emit(`party#${this.app.party.id}:member:joined`, member);
+            this.emit(`party#${this.app.party.id}:member${member.id}:joined`, member);
 
           } break;
 
@@ -318,7 +314,7 @@ class Communicator extends EventEmitter {
             if (this.app.id === 'Launcher') break;
             if (!this.app.party || this.app.party.id !== body.party_id) break;
 
-            const confirmation = new PartyMemberConfirmation(this.app.party, {
+            const confirmation = new this.app.PartyMemberConfirmation(this.app.party, {
               connection: body.connection,
               revision: body.revision,
               accountId: body.account_id,
@@ -343,8 +339,8 @@ class Communicator extends EventEmitter {
 
             if (this.app.id === 'Launcher') break;
 
-            const party = await Party.lookup(this.app, body.party_id);
-            const invitation = new PartyInvitation(party, {
+            const party = await this.app.Party.lookup(this.app, body.party_id);
+            const invitation = new this.app.PartyInvitation(party, {
               appId: body.ns,
               meta: body.meta,
               accountId: body.inviter_id,

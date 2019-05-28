@@ -1,7 +1,20 @@
-# Communicator
+---
+sidebarDepth: 2
+---
 
-// TODO
+# Friend
 
 ## Properties
 
+### favorite
+
+### status
+UNDEFINED, PENDING, ACCEPTED, BLOCKED, REMOVED
+
+### lastActionAt
+
 ## Methods
+
+### remove()
+
+### static::invite(launcher, accountId)

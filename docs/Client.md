@@ -43,6 +43,26 @@ function (confirmation) {
 }
 ```
 
+### platform
+Object with keys `full`, `short` and `os`.
+```javascript
+// Default:
+{
+  full: 'Windows',
+  short: EPlatform.WIN,
+  os: 'Windows/10.0.17134.1.768.64bit',
+}
+```
+
+### build
+Copied from official launcher's logs. You can found it under name "Build". Defaultly is set on version which was live while library update.
+
+### engineBuild
+Copied from official launcher's logs. You can found it under name "Engine Build". Defaultly is set on version which was live while library update.
+
+### netCL
+Copied from official launcher's logs. You can found it under name "Net CL". Defaultly is set on version which was live while library update.
+
 ### http
 `epicgames-client` using [request](https://github.com/request/request) library to sending request. You can set options for this library in this property.
 - **Type:** `object`

@@ -11,8 +11,15 @@ module.exports = {
       '/': [
         '',
         'Client',
+        'Account',
         'Communicator',
-      ]
+        'Friend',
+        'Party',
+        'PartyMember',
+        'EPlatform',
+        'EInputType',
+        'EUserState',
+      ],
 
     },
   },

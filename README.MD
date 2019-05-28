@@ -14,30 +14,31 @@ npm i epicgames-client --save
 
 # Example
 ```javascript
-const { Client } = require('epicgames-client');
+const { Launcher } = require('epicgames-client');
 
-let client = new Client({
-    email: 'EMAIL',
-    password: 'PASSWORD'
+const launcher = new Launcher({
+  email: 'E-MAIL',
+  password: 'PASSWORD',
 });
 
-(async _ => {
+(async () => {
 
-	if(!await client.init() || !await client.login())
-		throw 'Error while initialize or login process.';
+  if(!await launcher.init() || !await launcher.login()) {
+    throw new Error('Error while initialize or login process.');
+  }
+  
+  const playerName = 'Kysune';
+  const account = await launcher.getProfile(playerName);
+  if(!account) throw new Error(`Player ${playerName} not found!`);
 	
-	let account = await client.lookup('Kysune');
-			
-	if(!account){
-		console.log('Cannot found player.');
-		return;
-	}
-			
-	console.log(account.account_name + '\'s id: ' + account.id);
-	//It will return "Kysune's id: 9a1d43b1d826420e9fa393a79b74b2ff"
+  console.log(`${account.name}'s id: ${account.id}`);
+  // "Kysune's id: 9a1d43b1d826420e9fa393a79b74b2ff"
 
 })();
 ```
+
+# Documentation
+[CLICK](https://epicgames-client.kysune.me/)
 
 # TODO
 - [x] Better documentation
@@ -45,22 +46,6 @@ let client = new Client({
 - [ ] More code refactoring
 - [ ] Support for in-lobby communication
 - [ ] Implement support for all endpoints
-
-# Documentation (in progress)
-- [Home](https://github.com/SzymonLisowiec/node-epicgames-client/wiki)
-- [Enums](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Enums)
-- [Client](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Client)
-- [Communicator](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator)
-- [User](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/User)
-- [Friend](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Friend)
-- [FriendRequest](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/FriendRequest)
-- [Communicator\Status](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CStatus)
-- [Communicator\FriendMessage](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CFriendMessage)
-- [Communicator\Party](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CParty)
-- [Communicator\PartyData](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyData)
-- [Communicator\PartyMember](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyMember)
-- [Communicator\PartyMemberData](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyMemberData)
-- [Communicator\PartyInvitation](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyInvitation)
 
 # Do you need help?
 Check our discord server: https://discord.gg/HxGfuEx

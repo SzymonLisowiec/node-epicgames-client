@@ -13,14 +13,14 @@ class PartyJoinRequest {
         connection: {
           id: app.communicator.stream.jid.toString(),
           meta: {
-            'urn:epic:conn:platform_s': 'WIN',
+            'urn:epic:conn:platform_s': app.config.platform.short,
             'urn:epic:conn:type_s': 'game',
           },
         },
         meta: {
           'urn:epic:member:dn_s': app.launcher.account.displayName,
           'urn:epic:member:type_s': 'game',
-          'urn:epic:member:platform_s': 'WIN',
+          'urn:epic:member:platform_s': app.config.platform.short,
           'urn:epic:member:joinrequest_j': '{"CrossplayPreference_i":"1"}',
         },
       },

@@ -24,7 +24,7 @@ class Http {
   }
 
   getUserAgent() {
-    return `EpicGamesLauncher/${this.launcher.build} ${this.launcher.os}`;
+    return `EpicGamesLauncher/${this.launcher.config.build} ${this.launcher.config.platform.os}`;
   }
 
   setHeader(name, value) {

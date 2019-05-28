@@ -38,7 +38,7 @@ const launcher = new Launcher({
 ```
 
 # Documentation
-[CLICK](https://epicgames-client.kysune.me/)
+[https://epicgames-client.kysune.me/](https://epicgames-client.kysune.me/)
 
 # TODO
 - [x] Better documentation

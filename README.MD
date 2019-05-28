@@ -52,6 +52,7 @@ Check our discord server: https://discord.gg/HxGfuEx
 
 # Support
 If you would my private help with use of my libraries, or just support me, [click here](https://www.patreon.com/kysune).
+I would be grateful for github stars. :)
 
 # License
 MIT License

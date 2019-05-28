@@ -101,68 +101,79 @@ class MemberMeta extends Meta {
   }
 
   async setPlatform(platform) {
-    const loadout = this.get('Platform_j');
-    this.set('Platform_j', {
+    let loadout = this.get('Platform_j');
+    loadout = this.set('Platform_j', {
       ...loadout,
       Platform: {
         ...loadout.Platform,
         platformStr: platform,
       },
     });
-    await this.member.patch();
+    await this.member.patch({
+      Platform_j: loadout,
+    });
   }
 
   async setBanner(data) {
-    const loadout = this.get('AthenaBannerInfo_j');
-    this.set('AthenaBannerInfo_j', {
+    let loadout = this.get('AthenaBannerInfo_j');
+    loadout = this.set('AthenaBannerInfo_j', {
       ...loadout,
       AthenaBannerInfo: {
         ...loadout.AthenaBannerInfo,
         ...data,
       },
     });
-    await this.member.patch();
+    await this.member.patch({
+      AthenaBannerInfo_j: loadout,
+    });
   }
 
   async setBattlePass(data) {
-    const loadout = this.get('BattlePassInfo_j');
-    this.set('BattlePassInfo_j', {
+    let loadout = this.get('BattlePassInfo_j');
+    loadout = this.set('BattlePassInfo_j', {
       ...loadout,
       BattlePassInfo: {
         ...loadout.BattlePassInfo,
         ...data,
       },
     });
-    await this.member.patch();
+    await this.member.patch({
+      BattlePassInfo_j: loadout,
+    });
   }
 
   async setCosmeticLoadout(data) {
-    const loadout = this.get('AthenaCosmeticLoadout_j');
-    this.set('AthenaCosmeticLoadout_j', {
+    let loadout = this.get('AthenaCosmeticLoadout_j');
+    loadout = this.set('AthenaCosmeticLoadout_j', {
       ...loadout,
       AthenaCosmeticLoadout: {
         ...loadout.AthenaCosmeticLoadout,
         ...data,
       },
     });
-    await this.member.patch();
+    await this.member.patch({
+      AthenaCosmeticLoadout_j: loadout,
+    });
   }
 
   async setEmote(data) {
-    const loadout = this.get('FrontendEmote_j');
-    this.set('FrontendEmote_j', {
+    let loadout = this.get('FrontendEmote_j');
+    loadout = this.set('FrontendEmote_j', {
       ...loadout,
       FrontendEmote: {
         ...loadout.FrontendEmote,
         ...data,
       },
     });
-    await this.member.patch();
+    await this.member.patch({
+      FrontendEmote_j: loadout,
+    });
   }
 
   async setInputType(inputType) {
-    this.set('CurrentInputType_s', Object.keys(EInputType)[inputType]);
-    await this.member.patch();
+    await this.member.patch({
+      CurrentInputType_s: this.set('CurrentInputType_s', Object.keys(EInputType)[inputType]),
+    });
   }
 
   async setReady(ready) {

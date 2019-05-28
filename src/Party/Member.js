@@ -46,11 +46,10 @@ class Member {
     return this.meta.isReady();
   }
 
-  // Not working
-  // async setReady(...args) {
-  //   this.checkPermissions();
-  //   await this.meta.isReady(...args);
-  // }
+  async setReady(...args) {
+    this.checkPermissions();
+    await this.meta.setReady(...args);
+  }
 
   async setInputType(...args) {
     this.checkPermissions();

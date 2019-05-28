@@ -2,10 +2,10 @@ const Friend = require('./Friend');
 
 class FriendRequest {
 
-  constructor(client, data) {
+  constructor(launcher, data) {
 
-    this.client = client;
-    this.friend = new Friend(this.client, data);
+    this.launcher = launcher;
+    this.friend = new Friend(this.launcher, data);
 
     this.direction = data.direction;
     this.status = data.status;
@@ -15,7 +15,7 @@ class FriendRequest {
 
   async accept() {
 
-    if (await Friend.invite(this.client, this.friend.id)) {
+    if (await Friend.invite(this.launcher, this.friend.id)) {
       this.status = 'ACCEPTED';
       return true;
     }

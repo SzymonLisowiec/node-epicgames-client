@@ -3,13 +3,13 @@
 module.exports = {
   
   Client: require('./src/Client'),
+  Launcher: require('./src/Client'),
   WaitingRoom: require('./src/WaitingRoom'),
   User: require('./src/User'),
-  Communicator: require('./src/Communicator'),
   Endpoints: require('./resources/Endpoint'),
+  Application: require('./src/Application'),
 
   EUserState: require('./enums/UserState'),
-  EPartyPrivacy: require('./enums/PartyPrivacy'),
   EInputType: require('./enums/InputType'),
   EPlatform: require('./enums/Platform'),
 

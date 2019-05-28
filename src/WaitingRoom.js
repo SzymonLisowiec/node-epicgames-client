@@ -1,10 +1,10 @@
 class WaitingRoom {
 
-  constructor(client, url) {
+  constructor(launcher, url) {
 
-    this.client = client;
+    this.launcher = launcher;
     this.url = url;
-    this.http = this.client.http;
+    this.http = this.launcher.http;
     this.MPCVersion = null;
 
   }

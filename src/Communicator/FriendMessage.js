@@ -5,7 +5,7 @@ class FriendMessage {
   constructor(communicator, data) {
 
     this.communicator = communicator;
-    this.friend = new Friend(this.communicator.getClient(), data);
+    this.friend = new Friend(this.communicator.launcher, data);
 
     this.message = data.message;
     this.time = data.time;

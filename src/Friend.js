@@ -2,8 +2,8 @@ const User = require('./User');
 
 class Friend extends User {
 
-  constructor(client, data) {
-    super(client, data);
+  constructor(launcher, data) {
+    super(launcher, data);
 
     this.status = data.status || 'UNDEFINED'; // UNDEFINED, PENDING, ACCEPTED, BLOCKED, REMOVED
 
@@ -13,11 +13,11 @@ class Friend extends User {
 
   }
 
-  static async invite(client, accountId) {
+  static async invite(launcher, accountId) {
 
-    if (await client.inviteFriend(accountId)) {
+    if (await launcher.inviteFriend(accountId)) {
 
-      return new this(client, {
+      return new this(launcher, {
         accountId,
         status: 'PENDING',
         lastActionAt: new Date(),
@@ -30,7 +30,7 @@ class Friend extends User {
 
   async remove() {
 
-    if (await this.client.removeFriend(this.id)) {
+    if (await this.launcher.removeFriend(this.id)) {
 
       this.status = 'REMOVED';
 

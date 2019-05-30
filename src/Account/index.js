@@ -4,9 +4,9 @@ const Auth = require('./Auth');
 
 class Account {
 
-  constructor(client) {
+  constructor(launcher) {
 
-    this.client = client;
+    this.launcher = launcher;
     this.id = null;
 
     this.auth = null;
@@ -17,7 +17,7 @@ class Account {
 
     try {
             
-      const { data } = await this.client.http.sendGet(
+      const { data } = await this.launcher.http.sendGet(
         `${ENDPOINT.ACCOUNT}/${this.id}`,
         `${this.auth.tokenType} ${this.auth.accessToken}`,
       );
@@ -39,7 +39,7 @@ class Account {
 
     } catch (err) {
 
-      this.client.debug.print(new Error(err));
+      this.launcher.debug.print(new Error(err));
 
     }
 
@@ -48,7 +48,7 @@ class Account {
 
   async authorize(credentials) {
 
-    this.auth = new Auth(this.client);
+    this.auth = new Auth(this.launcher);
     const auth = await this.auth.auth(credentials);
 
     if (!auth) return false;
@@ -61,7 +61,7 @@ class Account {
 
   async register(options) {
     
-    this.auth = new Auth(this.client);
+    this.auth = new Auth(this.launcher);
     const auth = await this.auth.register(options);
 
     if (!auth) return false;

@@ -9,9 +9,9 @@ const Prompt = Readline.createInterface({
 
 class AccountAuth {
 
-  constructor(client) {
+  constructor(launcher) {
     
-    this.client = client;
+    this.launcher = launcher;
     this.tokenTimeout = null;
     
   }
@@ -30,12 +30,12 @@ class AccountAuth {
       /**
        * Sending login form
        */
-      let { data } = await this.client.http.sendPost(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`, 'launcher', {
+      let { data } = await this.launcher.http.sendPost(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`, 'launcher', {
         fromForm: 'yes',
         authType: null,
         linkExtAuth: null,
-        client_id: this.client.auth.clientId,
-        redirectUrl: `${ENDPOINT.LOGIN_FRONTEND}/login/showPleaseWait?client_id=${this.client.auth.clientId}&rememberEmail=false`,
+        client_id: this.launcher.auth.clientId,
+        redirectUrl: `${ENDPOINT.LOGIN_FRONTEND}/login/showPleaseWait?client_id=${this.launcher.auth.clientId}&rememberEmail=false`,
         epic_username: credentials.email,
         password: credentials.password,
         rememberMe: 'NO',
@@ -91,7 +91,7 @@ class AccountAuth {
 
     } catch (err) {
       
-      this.client.debug.print(err);
+      this.launcher.debug.print(err);
 
     }
 
@@ -104,15 +104,15 @@ class AccountAuth {
 
       const token = await this.getXSRF('register');
       
-      const { data } = await this.client.http.sendPost(
+      const { data } = await this.launcher.http.sendPost(
         `${ENDPOINT.LOGIN_FRONTEND}/register/doLauncherRegister`,
         'launcher',
         {
           fromForm: 'yes',
           location: '/location',
           authType: null,
-          client_id: this.client.auth.clientId,
-          redirectUrl: `${ENDPOINT.LOGIN_FRONTEND}/login/showPleaseWait?client_id=${this.client.auth.clientId}&rememberEmail=false`,
+          client_id: this.launcher.auth.clientId,
+          redirectUrl: `${ENDPOINT.LOGIN_FRONTEND}/login/showPleaseWait?client_id=${this.launcher.auth.clientId}&rememberEmail=false`,
           country: options.country,
           name: options.firstName,
           lastName: options.lastName,
@@ -162,7 +162,7 @@ class AccountAuth {
 
     } catch (err) {
         
-      this.client.debug.print(err);
+      this.launcher.debug.print(err);
 
     }
 
@@ -213,14 +213,14 @@ class AccountAuth {
 
     }
 
-    const { data } = await this.client.http.sendPost(
+    const { data } = await this.launcher.http.sendPost(
       `${ENDPOINT.LOGIN_FRONTEND}/login/doTwoFactor`
-      + `?client_id=${this.client.auth.clientId}`,
+      + `?client_id=${this.launcher.auth.clientId}`,
       null,
       twoFactorForm,
       false,
       {
-        'X-XSRF-TOKEN': this.client.http.jar.getCookies(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`).find(cookie => cookie.key === 'XSRF-TOKEN').value,
+        'X-XSRF-TOKEN': this.launcher.http.jar.getCookies(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`).find(cookie => cookie.key === 'XSRF-TOKEN').value,
       },
     );
 
@@ -251,17 +251,17 @@ class AccountAuth {
 
     const url = location === 'login' ? `${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin` : `${ENDPOINT.LOGIN_FRONTEND}/register/doLauncherRegister`;
 
-    await this.client.http.sendGet(
-      `${url}?client_id=${this.client.auth.clientId}`
-      + `&redirectUrl=https%3A%2F%2Faccounts.launcher-website-prod07.ol.epicgames.com%2Flogin%2FshowPleaseWait%3Fclient_id%3D${this.client.auth.clientId}%26rememberEmail%3Dfalse`,
+    await this.launcher.http.sendGet(
+      `${url}?client_id=${this.launcher.auth.clientId}`
+      + `&redirectUrl=https%3A%2F%2Faccounts.launcher-website-prod07.ol.epicgames.com%2Flogin%2FshowPleaseWait%3Fclient_id%3D${this.launcher.auth.clientId}%26rememberEmail%3Dfalse`,
       'launcher',
     );
-    return this.client.http.jar.getCookies(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`).find(cookie => cookie.key === 'XSRF-TOKEN').value;
+    return this.launcher.http.jar.getCookies(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`).find(cookie => cookie.key === 'XSRF-TOKEN').value;
   }
 
   async getExchangeCode(url) {
     
-    const { response: { body } } = await this.client.http.sendGet(url, 'launcher', {}, false);
+    const { response: { body } } = await this.launcher.http.sendGet(url, 'launcher', {}, false);
     
     const regex = /com\.epicgames\.account\.web\.widgets\.loginWithExchangeCode\('(.*)'(.*?)\)/g;
     const matches = regex.exec(body);
@@ -271,7 +271,7 @@ class AccountAuth {
 
   async exchangeCode(exchangeCode) {
 
-    const { data } = await this.client.http.sendPost(ENDPOINT.OAUTH_TOKEN, 'launcher', {
+    const { data } = await this.launcher.http.sendPost(ENDPOINT.OAUTH_TOKEN, 'launcher', {
       grant_type: 'exchange_code',
       exchange_code: exchangeCode,
       token_type: 'eg1',
@@ -285,7 +285,7 @@ class AccountAuth {
     
     try {
       
-      const { data } = await this.client.http.sendGet(
+      const { data } = await this.launcher.http.sendGet(
         ENDPOINT.OAUTH_EXCHANGE,
         `${this.tokenType} ${this.accessToken}`,
       );
@@ -298,7 +298,7 @@ class AccountAuth {
 
     } catch (err) {
       
-      this.client.debug.print(new Error(err));
+      this.launcher.debug.print(new Error(err));
 
     }
     
@@ -307,11 +307,11 @@ class AccountAuth {
 
   async doRefreshToken() {
 
-    this.client.debug.print('Refreshing account\'s token...');
+    this.launcher.debug.print('Refreshing account\'s token...');
 
     try {
 
-      const { data } = await this.client.http.sendPost(ENDPOINT.OAUTH_TOKEN, 'launcher', {
+      const { data } = await this.launcher.http.sendPost(ENDPOINT.OAUTH_TOKEN, 'launcher', {
         grant_type: 'refresh_token',
         refresh_token: this.refreshToken,
         includePerms: false, // Account's permissions
@@ -322,16 +322,16 @@ class AccountAuth {
         this.setAuthParams(data);
         this.setTokenTimeout();
 
-        this.client.emit('access_token_refreshed');
+        this.launcher.emit('access_token_refreshed');
 
-        this.client.debug.print('Account\'s token refreshed.');
+        this.launcher.debug.print('Account\'s token refreshed.');
         
-        if (this.client.communicator) {
+        if (this.launcher.communicator) {
     
-          await this.client.communicator.disconnect();
-          await this.client.communicator.connect();
+          await this.launcher.communicator.disconnect();
+          await this.launcher.communicator.connect();
           
-          this.client.debug.print('Communicator: Reconnected with new account\'s access token.');
+          this.launcher.debug.print('Communicator: Reconnected with new account\'s access token.');
     
         }
 
@@ -341,7 +341,7 @@ class AccountAuth {
 
     } catch (err) {
 
-      this.client.debug.print(new Error(err));
+      this.launcher.debug.print(new Error(err));
 
     }
 

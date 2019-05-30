@@ -2,6 +2,7 @@ const Events = require('events');
 
 const ENDPOINT = require('../../resources/Endpoint');
 
+const EPlatform = require('../../enums/Platform');
 const Http = require('../Http');
 const WaitingRoom = require('../WaitingRoom');
 const Account = require('../Account');
@@ -11,7 +12,34 @@ const Communicator = require('../Communicator');
 const User = require('../User');
 const Friend = require('../Friend');
 
-class Client extends Events {
+const Party = require('../Party');
+const PartyInvitation = require('../Party/PartyInvitation');
+const PartyJoinRequest = require('../Party/PartyJoinRequest');
+const PartyMeta = require('../Party/PartyMeta');
+const PartyMember = require('../Party/Member');
+const PartyMemberConfirmation = require('../Party/MemberConfimation');
+const PartyMemberConnection = require('../Party/MemberConnection');
+const PartyMemberMeta = require('../Party/MemberMeta');
+
+class Launcher extends Events {
+
+  static get Communicator() { return Communicator; }
+
+  static get Party() { return Party; }
+
+  static get PartyInvitation() { return PartyInvitation; }
+  
+  static get PartyJoinRequest() { return PartyJoinRequest; }
+
+  static get PartyMeta() { return PartyMeta; }
+
+  static get PartyMember() { return PartyMember; }
+
+  static get PartyMemberConfirmation() { return PartyMemberConfirmation; }
+
+  static get PartyMemberConnection() { return PartyMemberConnection; }
+
+  static get PartyMemberMeta() { return PartyMemberMeta; }
 
   /**
    * @param {Object} config 
@@ -25,8 +53,7 @@ class Client extends Events {
   constructor(config) {
     super(config);
 
-    this.appName = 'Launcher';
-    this.libraryName = 'epicgames-client';
+    this.id = 'Launcher';
 
     this.config = {
 
@@ -35,6 +62,15 @@ class Client extends Events {
       debug: null,
       useWaitingRoom: true,
       useCommunicator: true,
+      partyMemberConfirmation: true,
+      platform: {
+        full: 'Windows',
+        short: EPlatform.WIN,
+        os: 'Windows/10.0.17134.1.768.64bit',
+      },
+      build: '9.6.1-4858958+++Portal+Release-Live', // named "Build" in official launcher logs
+      engineBuild: '4.21.0-6409401+++Portal+Release-Live', // named "Engine Build" in official launcher logs
+      netCL: 6409401, // named "Net CL" in official launcher logs
 
       http: {},
 
@@ -48,20 +84,24 @@ class Client extends Events {
       tool: this.config.debug,
     });
 
-    this.os = 'Windows/10.0.17134.1.768.64bit';
-    this.build = '9.6.1-4858958+++Portal+Release-Live'; // Build of Launcher
-    this.UEBuild = '4.21.0-4858958+++Portal+Release-Live'; // Build of Unreal Engine
-
     this.http = new Http(this);
     this.http.setHeader('Accept-Language', this.config.language);
-
-    // this.labelName = null;
 
     this.account = null;
     this.communicator = null;
 
     this.auth = null;
     this.entitlements = [];
+
+    this.Communicator = Launcher.Communicator;
+    this.Party = Launcher.Party;
+    this.PartyInvitation = Launcher.PartyInvitation;
+    this.PartyJoinRequest = Launcher.PartyJoinRequest;
+    this.PartyMeta = Launcher.PartyMeta;
+    this.PartyMember = Launcher.PartyMember;
+    this.PartyMemberConfirmation = Launcher.PartyMemberConfirmation;
+    this.PartyMemberConnection = Launcher.PartyMemberConnection;
+    this.PartyMemberMeta = Launcher.PartyMemberMeta;
     
   }
 
@@ -189,7 +229,7 @@ class Client extends Events {
     if (auth) {
 
       if (this.config.useCommunicator) {
-        this.communicator = new Communicator(this);
+        this.communicator = new this.Communicator(this);
         await this.communicator.connect();
       }
 
@@ -477,13 +517,28 @@ class Client extends Events {
         `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
       );
       
-      return (Array.isArray(data) ? data : []).map(account => new Friend(this, {
+      let friends = (Array.isArray(data) ? data : []).map(account => ({
         accountId: account.accountId,
         status: account.status,
         direction: account.direction,
         created: new Date(account.created),
         favorite: account.favorite,
       }));
+      const ids = friends.map(friend => friend.accountId);
+      const profiles = {};
+      (await this.getProfiles(ids)).forEach((profile) => {
+        profiles[profile.id] = {
+          displayName: profile.displayName,
+          externalAuths: profile.externalAuths,
+        };
+      });
+
+      friends = friends.map((friend) => {
+        if (profiles[friend.accountId]) return new Friend(this, Object.assign(friend, profiles[friend.accountId]));
+        return null;
+      }).filter(friend => friend); // filter removes null values from array of friends.
+
+      return friends;
 
     } catch (err) {
       
@@ -500,7 +555,6 @@ class Client extends Events {
    */
   async getPendingFriends() {
     const friends = await this.getFriends(true);
-
     return friends ? friends.filter(friend => friend.status === 'PENDING') : [];
   }
 
@@ -682,7 +736,7 @@ class Client extends Events {
     try {
 
       const { data } = await this.http.sendGet(
-        `${ENDPOINT.LAUNCHER_STATUS}/${this.build}`,
+        `${ENDPOINT.LAUNCHER_STATUS}/${this.config.build}`,
         `${this.auth.tokenType} ${this.auth.accessToken}`,
       );
 
@@ -975,4 +1029,4 @@ class Client extends Events {
 
 }
 
-module.exports = Client;
+module.exports = Launcher;

@@ -1,8 +1,12 @@
 module.exports = {
   
   Windows: 'WIN',
-  PS4: 'PS4',
+  WIN: 'WIN',
+  MAC: 'MAC',
   Android: 'AND',
+  AND: 'AND',
   IOS: 'IOS',
+  PSN: 'PSN', // Playstation Network
+  XBL: 'XBL', // XBOX Live
 
 };

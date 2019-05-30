@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/epicgames-client.svg)](https://npmjs.com/package/epicgames-client)
 [![npm downloads](https://img.shields.io/npm/dm/epicgames-client.svg)](https://npmjs.com/package/epicgames-client)
 [![license](https://img.shields.io/npm/l/epicgames-client.svg)](https://github.com/SzymonLisowiec/node-epicgames-client/blob/master/LICENSE.MD)
-[![paypal](https://img.shields.io/badge/paypal-donate-orange.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FDN57KFYRP4CQ&source=url)
+[![patreon](https://img.shields.io/badge/patreon-donate-orange.svg)](https://www.patreon.com/kysune)
 
 __This library supports only epicgames launcher. If you need fortnite client, check [`node-epicgames-fortnite-client`](https://github.com/SzymonLisowiec/node-epicgames-fortnite-client)__
 
@@ -14,30 +14,31 @@ npm i epicgames-client --save
 
 # Example
 ```javascript
-const { Client } = require('epicgames-client');
+const { Launcher } = require('epicgames-client');
 
-let client = new Client({
-    email: 'EMAIL',
-    password: 'PASSWORD'
+const launcher = new Launcher({
+  email: 'E-MAIL',
+  password: 'PASSWORD',
 });
 
-(async _ => {
+(async () => {
 
-	if(!await client.init() || !await client.login())
-		throw 'Error while initialize or login process.';
+  if(!await launcher.init() || !await launcher.login()) {
+    throw new Error('Error while initialize or login process.');
+  }
+  
+  const playerName = 'Kysune';
+  const account = await launcher.getProfile(playerName);
+  if(!account) throw new Error(`Player ${playerName} not found!`);
 	
-	let account = await client.lookup('Kysune');
-			
-	if(!account){
-		console.log('Cannot found player.');
-		return;
-	}
-			
-	console.log(account.account_name + '\'s id: ' + account.id);
-	//It will return "Kysune's id: 9a1d43b1d826420e9fa393a79b74b2ff"
+  console.log(`${account.name}'s id: ${account.id}`);
+  // "Kysune's id: 9a1d43b1d826420e9fa393a79b74b2ff"
 
 })();
 ```
+
+# Documentation
+[https://epicgames-client.kysune.me/](https://epicgames-client.kysune.me/)
 
 # TODO
 - [x] Better documentation
@@ -46,24 +47,12 @@ let client = new Client({
 - [ ] Support for in-lobby communication
 - [ ] Implement support for all endpoints
 
-# Documentation (in progress)
-- [Home](https://github.com/SzymonLisowiec/node-epicgames-client/wiki)
-- [Enums](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Enums)
-- [Client](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Client)
-- [Communicator](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator)
-- [User](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/User)
-- [Friend](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Friend)
-- [FriendRequest](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/FriendRequest)
-- [Communicator\Status](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CStatus)
-- [Communicator\FriendMessage](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CFriendMessage)
-- [Communicator\Party](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CParty)
-- [Communicator\PartyData](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyData)
-- [Communicator\PartyMember](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyMember)
-- [Communicator\PartyMemberData](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyMemberData)
-- [Communicator\PartyInvitation](https://github.com/SzymonLisowiec/node-epicgames-client/wiki/Communicator%5CPartyInvitation)
-
 # Do you need help?
 Check our discord server: https://discord.gg/HxGfuEx
+
+# Support
+If you would my private help with use of my libraries, or just support me, [click here](https://www.patreon.com/kysune).
+I would be grateful for github stars. :)
 
 # License
 MIT License

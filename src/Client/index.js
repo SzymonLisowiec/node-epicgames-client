@@ -1,4 +1,5 @@
 const Events = require('events');
+const exitHook = require('exit-hook');
 
 const ENDPOINT = require('../../resources/Endpoint');
 
@@ -103,6 +104,10 @@ class Launcher extends Events {
     this.PartyMemberConfirmation = Launcher.PartyMemberConfirmation;
     this.PartyMemberConnection = Launcher.PartyMemberConnection;
     this.PartyMemberMeta = Launcher.PartyMemberMeta;
+
+    exitHook(() => {
+      this.emit('exit');
+    });
     
   }
 

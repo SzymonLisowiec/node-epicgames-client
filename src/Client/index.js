@@ -11,6 +11,7 @@ const Debug = require('../Debug');
 const Communicator = require('../Communicator');
 const User = require('../User');
 const Friend = require('../Friend');
+const FriendRequest = require('../FriendRequest');
 
 const Party = require('../Party');
 const PartyInvitation = require('../Party/PartyInvitation');
@@ -505,13 +506,13 @@ class Launcher extends Events {
   }
 
   /**
-   * Returns list of friends.
+   * Returns raw data list of friends
    * @param {boolean} includePending true if you want get pending friends.
    */
-  async getFriends(includePending) {
+  async getRawFriends(includePending) {
 
     try {
-      
+
       const { data } = await this.http.sendGet(
         `${ENDPOINT.FRIENDS}/${this.account.id}?includePending=${!!includePending}`,
         `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
@@ -534,15 +535,15 @@ class Launcher extends Events {
       });
 
       friends = friends.map((friend) => {
-        if (profiles[friend.accountId]) return new Friend(this, Object.assign(friend, profiles[friend.accountId]));
+        if (profiles[friend.accountId]) return Object.assign(friend, profiles[friend.accountId]);
         return null;
       }).filter(friend => friend); // filter removes null values from array of friends.
 
       return friends;
 
     } catch (err) {
-      
-      this.debug.print('Cannot get friends list.');
+
+      this.debug.print('Cannot get friends data.');
       this.debug.print(new Error(err));
 
     }
@@ -551,10 +552,31 @@ class Launcher extends Events {
   }
 
   /**
+   * Returns list of friends.
+   * @param {boolean} includePending true if you want get pending friends.
+   */
+  async getFriends(includePending) {
+
+    let friends = await this.getRawFriends(includePending);
+
+    friends = friends.map((friend) => {
+      return new Friend(this, friend);
+    }).filter(friend => friend); // filter removes null values from array of friends.
+
+    return friends;
+  }
+
+  /**
    * Returns all received invites to friends.
    */
   async getPendingFriends() {
-    const friends = await this.getFriends(true);
+
+    let friends = await this.getRawFriends(true);
+    
+    friends = friends.map((friend) => {
+      return new FriendRequest(this, friend);
+    }).filter(friend => friend); // filter removes null values from array of friends.
+
     return friends ? friends.filter(friend => friend.status === 'PENDING') : [];
   }
 

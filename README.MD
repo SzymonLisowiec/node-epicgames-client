@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/epicgames-client.svg)](https://npmjs.com/package/epicgames-client)
 [![npm downloads](https://img.shields.io/npm/dm/epicgames-client.svg)](https://npmjs.com/package/epicgames-client)
 [![license](https://img.shields.io/npm/l/epicgames-client.svg)](https://github.com/SzymonLisowiec/node-epicgames-client/blob/master/LICENSE.MD)
-[![paypal](https://img.shields.io/badge/paypal-donate-orange.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FDN57KFYRP4CQ&source=url)
+[![patreon](https://img.shields.io/badge/patreon-donate-orange.svg)](https://www.patreon.com/kysune)
 
 __This library supports only epicgames launcher. If you need fortnite client, check [`node-epicgames-fortnite-client`](https://github.com/SzymonLisowiec/node-epicgames-fortnite-client)__
 
@@ -38,7 +38,7 @@ const launcher = new Launcher({
 ```
 
 # Documentation
-[CLICK](https://epicgames-client.kysune.me/)
+[https://epicgames-client.kysune.me/](https://epicgames-client.kysune.me/)
 
 # TODO
 - [x] Better documentation
@@ -49,6 +49,10 @@ const launcher = new Launcher({
 
 # Do you need help?
 Check our discord server: https://discord.gg/HxGfuEx
+
+# Support
+If you would my private help with use of my libraries, or just support me, [click here](https://www.patreon.com/kysune).
+I would be grateful for github stars. :)
 
 # License
 MIT License

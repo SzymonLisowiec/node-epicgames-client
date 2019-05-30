@@ -553,11 +553,10 @@ class Launcher extends Events {
 
   /**
    * Returns list of friends.
-   * @param {boolean} includePending true if you want get pending friends.
    */
-  async getFriends(includePending) {
+  async getFriends() {
 
-    let friends = await this.getRawFriends(includePending);
+    let friends = await this.getRawFriends(false);
 
     friends = friends.map((friend) => {
       return new Friend(this, friend);
@@ -569,7 +568,7 @@ class Launcher extends Events {
   /**
    * Returns all received invites to friends.
    */
-  async getPendingFriends() {
+  async getFriendRequests() {
 
     let friends = await this.getRawFriends(true);
     

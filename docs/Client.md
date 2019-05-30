@@ -192,13 +192,11 @@ Same as [getProfile(id)](#getprofile-id)
 - **Arguments**
   - **id** - array of string - account's ids or names.
 
-### getFriends(includePending)
-- **Arguments**
-  - **includePending** - boolean, set to `true` if you want get pending friends too.
+### getFriends()
 - **Returns:** `array` of [Friend](./Friend.html)
 
-### getPendingFriends()
-Same as [getFriends(includePending)](#getfriends-includepending), but returns only pending friends.
+### getFriendRequests()
+- **Returns:** `array` of [FriendRequest](./FriendRequest.html)
 
 ### hasFriend(id)
 - **Arguments**
@@ -206,7 +204,7 @@ Same as [getFriends(includePending)](#getfriends-includepending), but returns on
 - **Returns:** `boolean`
 
 ### getFriendsBlocklist()
-Same as [getFriends(includePending)](#getfriends-includepending), but returns only blocked friends.
+Same as [getFriends](#getfriends), but returns only blocked friends.
 
 ### blockFriend(id)
 - **Arguments**

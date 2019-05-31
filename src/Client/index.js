@@ -815,6 +815,10 @@ class Launcher extends Events {
 
     } catch (err) {
 
+      if (err.message === 'errors.com.epicgames.eulatracking.agreement_not_found') {
+        return true;
+      }
+      
       this.debug.print(`Cannot get EULA for namespace ${namespace}`);
       this.debug.print(new Error(err));
 
@@ -865,8 +869,7 @@ class Launcher extends Events {
 
         if (eula === false) {
 
-          eula = true;
-          // throw new Error(`Cannot get informations about EULA for game ${game.Namespace}!`);
+          throw new Error(`Cannot get informations about EULA for game ${game.Namespace}!`);
 
         } else {
 

@@ -1,4 +1,5 @@
 const Events = require('events');
+const exitHook = require('exit-hook');
 
 const ENDPOINT = require('../../resources/Endpoint');
 
@@ -11,6 +12,7 @@ const Debug = require('../Debug');
 const Communicator = require('../Communicator');
 const User = require('../User');
 const Friend = require('../Friend');
+const FriendRequest = require('../FriendRequest');
 
 const Party = require('../Party');
 const PartyInvitation = require('../Party/PartyInvitation');
@@ -102,6 +104,10 @@ class Launcher extends Events {
     this.PartyMemberConfirmation = Launcher.PartyMemberConfirmation;
     this.PartyMemberConnection = Launcher.PartyMemberConnection;
     this.PartyMemberMeta = Launcher.PartyMemberMeta;
+
+    exitHook(() => {
+      this.emit('exit');
+    });
     
   }
 
@@ -505,13 +511,13 @@ class Launcher extends Events {
   }
 
   /**
-   * Returns list of friends.
+   * Returns raw data list of friends
    * @param {boolean} includePending true if you want get pending friends.
    */
-  async getFriends(includePending) {
+  async getRawFriends(includePending) {
 
     try {
-      
+
       const { data } = await this.http.sendGet(
         `${ENDPOINT.FRIENDS}/${this.account.id}?includePending=${!!includePending}`,
         `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
@@ -534,15 +540,15 @@ class Launcher extends Events {
       });
 
       friends = friends.map((friend) => {
-        if (profiles[friend.accountId]) return new Friend(this, Object.assign(friend, profiles[friend.accountId]));
+        if (profiles[friend.accountId]) return Object.assign(friend, profiles[friend.accountId]);
         return null;
       }).filter(friend => friend); // filter removes null values from array of friends.
 
       return friends;
 
     } catch (err) {
-      
-      this.debug.print('Cannot get friends list.');
+
+      this.debug.print('Cannot get friends data.');
       this.debug.print(new Error(err));
 
     }
@@ -551,10 +557,26 @@ class Launcher extends Events {
   }
 
   /**
+   * Returns list of friends.
+   */
+  async getFriends() {
+
+    let friends = await this.getRawFriends(false);
+
+    friends = friends.map(friend => new Friend(this, friend)).filter(friend => friend); // filter removes null values from array of friends.
+
+    return friends;
+  }
+
+  /**
    * Returns all received invites to friends.
    */
-  async getPendingFriends() {
-    const friends = await this.getFriends(true);
+  async getFriendRequests() {
+
+    let friends = await this.getRawFriends(true);
+    
+    friends = friends.map(friend => new FriendRequest(this, friend)).filter(friend => friend); // filter removes null values from array of friends.
+
     return friends ? friends.filter(friend => friend.status === 'PENDING') : [];
   }
 
@@ -793,6 +815,10 @@ class Launcher extends Events {
 
     } catch (err) {
 
+      if (err.message === 'errors.com.epicgames.eulatracking.agreement_not_found') {
+        return true;
+      }
+      
       this.debug.print(`Cannot get EULA for namespace ${namespace}`);
       this.debug.print(new Error(err));
 

@@ -1,4 +1,5 @@
 const Events = require('events');
+const exitHook = require('exit-hook');
 
 const ENDPOINT = require('../../resources/Endpoint');
 
@@ -103,6 +104,10 @@ class Launcher extends Events {
     this.PartyMemberConfirmation = Launcher.PartyMemberConfirmation;
     this.PartyMemberConnection = Launcher.PartyMemberConnection;
     this.PartyMemberMeta = Launcher.PartyMemberMeta;
+
+    exitHook(() => {
+      this.emit('exit');
+    });
     
   }
 
@@ -553,15 +558,12 @@ class Launcher extends Events {
 
   /**
    * Returns list of friends.
-   * @param {boolean} includePending true if you want get pending friends.
    */
-  async getFriends(includePending) {
+  async getFriends() {
 
-    let friends = await this.getRawFriends(includePending);
+    let friends = await this.getRawFriends(false);
 
-    friends = friends.map((friend) => {
-      return new Friend(this, friend);
-    }).filter(friend => friend); // filter removes null values from array of friends.
+    friends = friends.map(friend => new Friend(this, friend)).filter(friend => friend); // filter removes null values from array of friends.
 
     return friends;
   }
@@ -569,13 +571,11 @@ class Launcher extends Events {
   /**
    * Returns all received invites to friends.
    */
-  async getPendingFriends() {
+  async getFriendRequests() {
 
     let friends = await this.getRawFriends(true);
     
-    friends = friends.map((friend) => {
-      return new FriendRequest(this, friend);
-    }).filter(friend => friend); // filter removes null values from array of friends.
+    friends = friends.map(friend => new FriendRequest(this, friend)).filter(friend => friend); // filter removes null values from array of friends.
 
     return friends ? friends.filter(friend => friend.status === 'PENDING') : [];
   }
@@ -815,6 +815,10 @@ class Launcher extends Events {
 
     } catch (err) {
 
+      if (err.message === 'errors.com.epicgames.eulatracking.agreement_not_found') {
+        return true;
+      }
+      
       this.debug.print(`Cannot get EULA for namespace ${namespace}`);
       this.debug.print(new Error(err));
 

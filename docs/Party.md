@@ -60,6 +60,13 @@ Leaves the party.
 - **Arguments**
   - **allow** - boolean
 
+### setPlaylist(regionId, playlistName, tournamentId, eventWindowId) // only in `epicgames-fortnite-client`
+- **Arguments**
+  - **regionId** - string, e.g. 'EU'
+  - **playlistName** - string, e.g. 'Playlist_DefaultDuo'
+  - **tournamentId** - string, optional
+  - **eventWindowId** - string, optional
+
 ### kick(member)
 - **Arguments**
   - **member** - member's account id or `PartyMember` object

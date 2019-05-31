@@ -563,9 +563,7 @@ class Launcher extends Events {
 
     let friends = await this.getRawFriends(false);
 
-    friends = friends.map((friend) => {
-      return new Friend(this, friend);
-    }).filter(friend => friend); // filter removes null values from array of friends.
+    friends = friends.map(friend => new Friend(this, friend)).filter(friend => friend); // filter removes null values from array of friends.
 
     return friends;
   }
@@ -577,9 +575,7 @@ class Launcher extends Events {
 
     let friends = await this.getRawFriends(true);
     
-    friends = friends.map((friend) => {
-      return new FriendRequest(this, friend);
-    }).filter(friend => friend); // filter removes null values from array of friends.
+    friends = friends.map(friend => new FriendRequest(this, friend)).filter(friend => friend); // filter removes null values from array of friends.
 
     return friends ? friends.filter(friend => friend.status === 'PENDING') : [];
   }
@@ -869,7 +865,8 @@ class Launcher extends Events {
 
         if (eula === false) {
 
-          throw new Error(`Cannot get informations about EULA for game ${game.Namespace}!`);
+          eula = true;
+          // throw new Error(`Cannot get informations about EULA for game ${game.Namespace}!`);
 
         } else {
 

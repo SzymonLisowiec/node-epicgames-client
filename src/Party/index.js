@@ -20,7 +20,8 @@ class Party {
     return this.members.find(member => member.id === this.app.launcher.account.id);
   }
 
-  findMember(id) {
+  findMember(searchedUser) {
+    const id = searchedUser instanceof this.app.PartyMember ? searchedUser.id : searchedUser;
     return this.members.find(member => member.id === id);
   }
 
@@ -37,6 +38,11 @@ class Party {
 
   invite(accountId) {
     return this.app.PartyInvitation.send(this, accountId);
+  }
+
+  async kick(kickedMember) {
+    const member = this.findMember(kickedMember);
+    if (member) await member.kick();
   }
 
   async leave() {
@@ -153,7 +159,26 @@ class Party {
         'urn:epic:cfg:accepting-members_b': true,
       },
     );
-    return new this(app, data);
+    app.party = new this(app, data);
+    await app.party.waitForFirstRevision();
+    return app.party;
+  }
+
+  async waitForFirstRevision() {
+    return new Promise((resolve, reject) => {
+      let sto;
+      const siv = setInterval(() => {
+        if (this.revision === 0) return;
+        clearInterval(siv);
+        clearTimeout(sto);
+        resolve();
+      }, 250);
+      sto = setTimeout(() => {
+        clearInterval(siv);
+        clearTimeout(sto);
+        reject(new Error('Timeout, no `PARTY_UPDATED` event in 5 seconds.'));
+      }, 5000);
+    });
   }
 
 }

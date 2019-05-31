@@ -87,6 +87,12 @@ class Party {
           delete: [],
           update: updated || this.meta.schema,
         },
+        // party_state_overridden: {},
+        // party_privacy_type: this.config.joinability,
+        // party_type: 'DEFAULT',
+        // party_sub_type: this.config.subType,
+        // max_number_of_members: this.config.maxSize,
+        // invite_ttl_seconds: this.config.inviteTTL,
         revision: this.revision,
       },
     );
@@ -97,6 +103,9 @@ class Party {
     if (data.revision > this.revision) this.revision = data.revision;
     this.config.joinability = data.party_privacy_type;
     this.config.maxSize = data.max_number_of_members;
+    this.config.subType = data.party_sub_type;
+    this.config.type = data.type;
+    this.config.inviteTTL = data.invite_ttl_seconds;
     this.meta.update(data.party_state_updated, true);
   }
 
@@ -110,10 +119,25 @@ class Party {
       config.maxSize = config.max_size;
       delete config.max_size;
     }
+    if (config.max_size) {
+      config.maxSize = config.max_size;
+      delete config.max_size;
+    }
+    if (config.invite_ttl_seconds) {
+      config.inviteTTL = config.invite_ttl_seconds;
+      delete config.invite_ttl_seconds;
+    }
+    if (config.sub_type) {
+      config.subType = config.sub_type;
+      delete config.sub_type;
+    }
     return {
       joinConfirmation: true,
       joinability: 'OPEN',
       maxSize: 16,
+      subType: 'default',
+      type: 'default',
+      inviteTTL: 14400,
       ...config,
     };
   }
@@ -147,16 +171,16 @@ class Party {
             },
           },
         },
-        meta: {
+        meta: { // TODO: PRIVACY SETTINGS
           'urn:epic:cfg:party-notification-id_s': 'default',
-          'urn:epic:cfg:join-request-action_s': 'manual',
+          'urn:epic:cfg:party-type-id_s': 'default',
+          'urn:epic:cfg:build-id_s': app.config.netCL,
+          'urn:epic:cfg:presence-perm_s': 'Anyone',
+          'urn:epic:cfg:accepting-members_b': true,
+          'urn:epic:cfg:join-request-action_s': 'Manual',
+          'urn:epic:cfg:invite-perm_s': 'Anyone',
+          'urn:epic:cfg:chat-enabled_b': true,
         },
-        'urn:epic:cfg:chat-enabled_b': true,
-        'urn:epic:cfg:invite-perm_s': 'None',
-        'urn:epic:cfg:build-id_s': app.config.netCL,
-        'urn:epic:cfg:presence-perm_s': 'None',
-        'urn:epic:cfg:not-accepting-members-reason_i': 0,
-        'urn:epic:cfg:accepting-members_b': true,
       },
     );
     app.party = new this(app, data);

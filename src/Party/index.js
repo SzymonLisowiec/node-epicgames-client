@@ -66,7 +66,7 @@ class Party {
   // join() {
   // }
 
-  async patch() {
+  async patch(updated) {
     await this.app.http.send(
       'PATCH',
       `https://party-service-prod.ol.epicgames.com/party/api/v1/${this.app.id}/parties/${this.id}`,
@@ -79,7 +79,7 @@ class Party {
         },
         meta: {
           delete: [],
-          update: this.meta.schema,
+          update: updated || this.meta.schema,
         },
         revision: this.revision,
       },

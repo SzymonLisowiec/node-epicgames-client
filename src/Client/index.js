@@ -975,9 +975,11 @@ class Launcher extends Events {
 
       if (eula !== true) { throw new Error(`Cannot accept EULA for game ${game.Namespace}!`); }
 
-      if (!this.findActiveEntitlementByName('Fortnite_Free')) {
+      const entitlement = this.entitlements.find(e => e.entitlementName === game.EntitlementName && e.namespace === game.Namespace && e.active === true);
 
-        if (typeof game.StoreOfferId === 'undefined') { throw new Error(`Account don't have game "${game.Name}".`); }
+      if (!entitlement) {
+
+        if (typeof game.StoreOfferId === 'undefined') { throw new Error(`Account don't have game "${game.Name}" and cannot buy (no StoreOfferId).`); }
         
         const purchase = await this.purchase({
           id: game.StoreOfferId,

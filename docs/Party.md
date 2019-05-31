@@ -33,15 +33,24 @@ const launcher = new Launcher({
 The party's id.
 
 ### me
-Your `Member` object.
+Your `PartyMember` object.
 
 ### leader
-Leader's `Member` object.
+Leader's `PartyMember` object.
 
 ## Methods
 
 ### leave()
 Leaves the party.
+
+### invite(accountId)
+- **Arguments**
+  - **accountId** - member's account id or `PartyMember` object
+
+### findMember(member)
+- **Arguments**
+  - **member** - member's account id or `PartyMember` object
+- **Returns:** - `PartyMember` object
 
 ### setCustomMatchKey(key) // only in `epicgames-fortnite-client`
 - **Arguments**
@@ -50,6 +59,10 @@ Leaves the party.
 ### setAllowJoinInProgress(allow) // only in `epicgames-fortnite-client`
 - **Arguments**
   - **allow** - boolean
+
+### kick(member)
+- **Arguments**
+  - **member** - member's account id or `PartyMember` object
 
 ### static::lookup(app, id)
 Lookups party by id.

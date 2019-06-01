@@ -32,6 +32,17 @@ class Member {
     this.party.removeMember(this);
   }
 
+  async promote() {
+    if (this.party.me.id !== this.party.leader.id) throw new Error('You aren\'t the party leader!');
+    if (this.party.me.id === this.id) throw new Error('You can\'t promote yourself!');
+
+    await this.app.http.send(
+      'POST',
+      `https://party-service-prod.ol.epicgames.com/party/api/v1/${this.app.id}/parties/${this.party.id}/members/${this.id}/promote`,
+      `${this.app.auth.tokenType} ${this.app.auth.accessToken}`,
+    );
+  }
+
   async patch(updated) {
     await this.app.http.send(
       'PATCH',

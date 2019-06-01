@@ -87,3 +87,5 @@ Member's role. In Fortnite, `CAPTAIN` is party leader.
   - **level** - number
   - **selfBoostXp** - number
   - **friendBoostXp** - number
+
+### kick()

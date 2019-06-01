@@ -1,4 +1,5 @@
 const Events = require('events');
+const Cheerio = require('cheerio');
 const exitHook = require('exit-hook');
 
 const ENDPOINT = require('../../resources/Endpoint');
@@ -448,7 +449,7 @@ class Launcher extends Events {
         true,
       );
 
-      return data.quickPurchaseStatus && data.quickPurchaseStatus === 'SUCCESS';
+      return data.quickPurchaseStatus ? data.quickPurchaseStatus : false;
 
     } catch (err) {
 
@@ -457,6 +458,98 @@ class Launcher extends Events {
     }
 
     return false;
+  }
+  
+  async newPurchase(offer) {
+    let { data: purchase } = await this.http.sendGet(`https://launcher-website-prod07.ol.epicgames.com/purchase?showNavigation=true&namespace=${offer.namespace}&offers=${offer.id}`);
+    purchase = Cheerio.load(purchase);
+    const token = purchase('#purchaseToken').val();
+    return {
+      token,
+    };
+  }
+
+  async purchaseOrderPreview(purchase, offer) {
+    
+    const { data } = await this.http.sendPost(
+      `${ENDPOINT.PURCHASE}/order-preview`,
+      `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
+      {
+        useDefault: true,
+        setDefault: false,
+        namespace: offer.namespace,
+        country: null,
+        countryName: null,
+        orderId: null,
+        orderComplete: null,
+        orderError: null,
+        orderPending: null,
+        offers: [
+          offer.id,
+        ],
+        offerPrice: '',
+      },
+      true,
+      {
+        'x-requested-with': purchase.token,
+      },
+    );
+
+    return data.syncToken ? data : false;
+  }
+
+  async purchaseOrderConfirm(purchase, order) {
+
+    const { data } = await this.http.sendPost(
+      `${ENDPOINT.PURCHASE}/confirm-order`,
+      `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
+      {
+        useDefault: true,
+        setDefault: false,
+        namespace: order.namespace,
+        country: order.country,
+        countryName: order.countryName,
+        orderId: null,
+        orderComplete: null,
+        orderError: null,
+        orderPending: null,
+        offers: order.offers,
+        includeAccountBalance: false,
+        totalAmount: order.orderResponse.totalPrice,
+        affiliateId: '',
+        creatorSource: '',
+        syncToken: order.syncToken,
+      },
+      true,
+      {
+        'x-requested-with': purchase.token,
+      },
+    );
+    
+    return data && data.confirmation;
+  }
+
+  async purchase(offer, quantity) {
+
+    const quickPurchaseStatus = await this.quickPurchase(offer, quantity);
+
+    switch (quickPurchaseStatus) {
+
+      case 'SUCCESS':
+        return true;
+
+      case 'CHECKOUT': {
+        const purchase = await this.newPurchase(offer);
+        const order = await this.purchaseOrderPreview(purchase, offer);
+        if (!order) return false;
+        return this.purchaseOrderConfirm(purchase, order);
+      }
+
+      default:
+        throw new Error(`Unknown quick purchase status: ${quickPurchaseStatus}`);
+
+    }
+
   }
 
   /**
@@ -882,11 +975,13 @@ class Launcher extends Events {
 
       if (eula !== true) { throw new Error(`Cannot accept EULA for game ${game.Namespace}!`); }
 
-      if (!this.findActiveEntitlementByName('Fortnite_Free')) {
+      const entitlement = this.entitlements.find(e => e.entitlementName === game.EntitlementName && e.namespace === game.Namespace && e.active === true);
 
-        if (typeof game.StoreOfferId === 'undefined') { throw new Error(`Account don't have game "${game.Name}".`); }
+      if (!entitlement) {
+
+        if (typeof game.StoreOfferId === 'undefined') { throw new Error(`Account don't have game "${game.Name}" and cannot buy (no StoreOfferId).`); }
         
-        const purchase = await this.quickPurchase({
+        const purchase = await this.purchase({
           id: game.StoreOfferId,
           namespace: game.Namespace,
         });

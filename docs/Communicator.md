@@ -98,6 +98,7 @@ app.on('party:member:kicked', (member) => {
   console.log(`Member ${member.name} kicked!`);
 });
 ```
+### party:member:disconnected
 ### party:member:state:updated
 Emitted while party member change their state, it means change e.g. outfit, backpack, emote, readiness.
 ### party:member:confirmation

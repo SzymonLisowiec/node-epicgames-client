@@ -263,6 +263,21 @@ class Communicator extends EventEmitter {
 
           } break;
 
+          case 'com.epicgames.social.party.notification.v0.MEMBER_DISCONNECTED': {
+
+            if (this.app.id === 'Launcher') break;
+            if (!this.app.party || this.app.party.id !== body.party_id) break;
+
+            const member = this.app.party.findMember(body.account_id);
+            if (!member) break;
+            this.app.party.removeMember(member);
+
+            this.emit('party:member:disconnected', member);
+            this.emit(`party#${this.app.party.id}:member:disconnected`, member);
+            this.emit(`party#${this.app.party.id}:member#${member.id}:disconnected`, member);
+
+          } break;
+
           case 'com.epicgames.social.party.notification.v0.PARTY_UPDATED':
 
             if (this.app.id === 'Launcher') break;

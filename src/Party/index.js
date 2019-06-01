@@ -45,6 +45,11 @@ class Party {
     if (member) await member.kick();
   }
 
+  async promote(promotedMember) {
+    const member = this.findMember(promotedMember);
+    if (member) await member.promote();
+  }
+
   async leave() {
     await this.app.http.send(
       'DELETE',

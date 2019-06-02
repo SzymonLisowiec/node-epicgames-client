@@ -353,7 +353,6 @@ class Communicator extends EventEmitter {
           case 'com.epicgames.social.party.notification.v0.INITIAL_INVITE': {
 
             if (this.app.id === 'Launcher') break;
-
             const party = await this.app.Party.lookup(this.app, body.party_id);
             const invitation = new this.app.PartyInvitation(party, {
               appId: body.ns,
@@ -478,17 +477,9 @@ class Communicator extends EventEmitter {
     
     if (!status) return this.stream.sendPresence(null);
     
-    if (typeof status === 'string') {
-
-      return this.stream.sendPresence({
-        status: {
-          status,
-        },
-      });
-
-    }
-
-    return this.stream.sendPresence(status);
+    return this.stream.sendPresence({
+      status: JSON.stringify(typeof status === 'object' ? status : { Status: status }),
+    });
   }
 
   /**

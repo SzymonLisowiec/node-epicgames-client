@@ -5,6 +5,7 @@ const exitHook = require('exit-hook');
 const ENDPOINT = require('../../resources/Endpoint');
 
 const EPlatform = require('../../enums/Platform');
+const EPartyPrivacy = require('../../enums/PartyPrivacy');
 const Http = require('../Http');
 const WaitingRoom = require('../WaitingRoom');
 const Account = require('../Account');
@@ -78,6 +79,20 @@ class Launcher extends Events {
       http: {},
 
       language: 'en-EN',
+
+      createPartyOnStart: true,
+      defaultPartyConfig: {
+        privacy: EPartyPrivacy.PUBLIC,
+        joinConfirmation: false,
+        joinability: 'OPEN',
+        maxSize: 16,
+        subType: 'default',
+        type: 'default',
+        inviteTTL: 14400,
+        chatEnabled: true,
+      },
+
+      autoPresenceUpdating: true,
 
       ...config,
 

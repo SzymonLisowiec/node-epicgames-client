@@ -4,6 +4,7 @@ module.exports = {
   themeConfig: {
     nav: [
       { text: 'Home', link: '/' },
+      { text: 'Changelog', link: '/Changelog.html' },
       { text: 'Github', link: 'https://github.com/SzymonLisowiec/node-epicgames-client' },
     ],
     sidebar: {
@@ -19,6 +20,7 @@ module.exports = {
         'EPlatform',
         'EInputType',
         'EUserState',
+        'EPartyPrivacy',
       ],
 
     },

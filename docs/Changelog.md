@@ -18,6 +18,7 @@
     chatEnabled: true,
   }
   ```
+- Added `Member.promote()` and `Party.promote(member)` methods. Thanks [iXyles](https://github.com/iXyles) for [PR](https://github.com/SzymonLisowiec/node-epicgames-client/pull/41).
 - Added `setPrivacy(privacy)` method to `Party`. `privacy` argument is a `EPartyPrivacy`.
 - Improved `Meta.get(key, raw)` method (added `raw` argument, set to `true` if you don't want parse a value).
 - Added removing keys in `Meta`.
@@ -32,13 +33,13 @@
 - Added kicking party members by `party.kick(accountId)` or `member.kick()`.
 - Fixed error `errors.com.epicgames.social.party.stale_revision` while updating new party.
 - `party.findMember()` currently searching by `accountId` and `PartyMember` object.
-Thanks to: @iXyles#0001 
+Thanks to: [iXyles](https://github.com/iXyles) 
 
 ## 2.0.7
-- Fixed `Party` methods: `setCustomMatchKey(key)` and `setAllowJoinInProgress(canJoin)`. Thanks @iXyles#0001 for report.
+- Fixed `Party` methods: `setCustomMatchKey(key)` and `setAllowJoinInProgress(canJoin)`. Thanks [iXyles](https://github.com/iXyles) for report.
 
 ## 2.0.6
-- fixed `getFriends()` method. Thanks @iXyles#0001 for PR.
+- fixed `getFriends()` method. Thanks [iXyles](https://github.com/iXyles) for PR.
 - removed `includePending` attribute from `getFriends()`. Currently you can get pending friends only by `getFriendRequests()` (previously `getPendingFriends()`).
 - Added exit process handler for new feature in `epicgames-fortnite-client`.
 - Improved checking EULA while running game by `runGame()` method.

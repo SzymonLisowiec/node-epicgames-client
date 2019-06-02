@@ -71,6 +71,11 @@ Leaves the party.
 - **Arguments**
   - **member** - member's account id or `PartyMember` object
 
+### kick(member)
+Promote member to leader role.
+- **Arguments**
+  - **member** - member's account id or `PartyMember` object
+
 ### static::lookup(app, id)
 Lookups party by id.
 - **Arguments**

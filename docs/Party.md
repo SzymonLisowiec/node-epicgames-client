@@ -82,5 +82,5 @@ Lookups party by id.
 Opens new party.
 - **Arguments**
   - **app** - `Application` object, e.g. `epicgames-fortnite-client`
-  - **config** - party's configuration
+  - **config** - optional, party's configuration, same as [defaultPartyConfig](/Client.html#defaultpartyconfig) option
 - **Returns:** `Party` object

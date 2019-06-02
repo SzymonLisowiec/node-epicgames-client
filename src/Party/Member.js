@@ -17,6 +17,7 @@ class Member {
   update(data) {
     if (data.revision > this.revision) this.revision = data.revision;
     this.meta.update(data.member_state_updated, true);
+    this.meta.remove(data.member_state_removed);
   }
 
   async kick() {

@@ -1,0 +1,42 @@
+module.exports = {
+  PUBLIC: {
+    partyType: 'Public',
+    inviteRestriction: 'AnyMember',
+    onlyLeaderFriendsCanJoin: false,
+    presencePermission: 'Anyone',
+    invitePermission: 'Anyone',
+    acceptingMembers: true,
+  },
+  FRIENDS_ALLOW_FRIENDS_OF_FRIENDS: {
+    partyType: 'FriendsOnly',
+    inviteRestriction: 'AnyMember',
+    onlyLeaderFriendsCanJoin: false,
+    presencePermission: 'Anyone',
+    invitePermission: 'AnyMember',
+    acceptingMembers: true,
+  },
+  FRIENDS: {
+    partyType: 'FriendsOnly',
+    inviteRestriction: 'LeaderOnly',
+    onlyLeaderFriendsCanJoin: true,
+    presencePermission: 'Leader',
+    invitePermission: 'Leader',
+    acceptingMembers: false,
+  },
+  PRIVATE_ALLOW_FRIENDS_OF_FRIENDS: {
+    partyType: 'Private',
+    inviteRestriction: 'AnyMember',
+    onlyLeaderFriendsCanJoin: false,
+    presencePermission: 'None',
+    invitePermission: 'AnyMember',
+    acceptingMembers: false,
+  },
+  PRIVATE: {
+    partyType: 'Private',
+    inviteRestriction: 'LeaderOnly',
+    onlyLeaderFriendsCanJoin: true,
+    presencePermission: 'None',
+    invitePermission: 'Leader',
+    acceptingMembers: false,
+  },
+};

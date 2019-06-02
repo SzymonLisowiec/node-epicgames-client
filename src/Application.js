@@ -33,6 +33,9 @@ class Application extends Events {
       useCommunicator: this.launcher.config.useCommunicator,
       http: this.launcher.config.http,
       platform: this.launcher.config.platform,
+      createPartyOnStart: this.launcher.config.createPartyOnStart,
+      defaultPartyConfig: this.launcher.config.defaultPartyConfig,
+      autoPresenceUpdating: this.launcher.config.autoPresenceUpdating,
 
       ...config,
 

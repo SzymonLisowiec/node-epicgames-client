@@ -14,7 +14,7 @@ class Meta {
         this.schema[prop] = JSON.stringify(value);
         break;
       case 'U':
-        this.schema[prop] = parseInt(value, 10);
+        this.schema[prop] = String(parseInt(value, 10));
         break;
       default:
         this.schema[prop] = String(value);
@@ -22,8 +22,12 @@ class Meta {
     return this.schema[prop];
   }
 
-  get(prop) {
+  get(prop, raw) {
+    if (raw) return this.schema[prop];
     switch (prop.substr(-1)) {
+      case 'b':
+        if (typeof this.schema[prop] === 'undefined') return false;
+        return !!(this.schema[prop] === 'true' || !!this.schema[prop] === true);
       case 'j':
         return typeof this.schema[prop] !== 'undefined' ? JSON.parse(this.schema[prop]) : {};
       case 'U':
@@ -36,6 +40,12 @@ class Meta {
   update(schema, isRaw) {
     Object.keys(schema).forEach((prop) => {
       this.set(prop, schema[prop], isRaw);
+    });
+  }
+
+  remove(schema) {
+    schema.forEach((key) => {
+      delete this.schema[key];
     });
   }
 

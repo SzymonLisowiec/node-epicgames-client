@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.12
+- Fixed error `user_has_party`.
+- Integration with new Fortnite update.
+- Some fixes
+
 ## 2.0.11
 - Added enum `EPartyPrivacy`.
 - Added `Client` options:

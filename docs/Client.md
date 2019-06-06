@@ -110,6 +110,9 @@ Equals `Launcher`.
 ### communicator
 [Communicator object](./Communicator.html)
 
+### communicatorFriends
+List of [Friend](./Friend.html) received from XMPP.
+
 ### entitlements
 Account's entitlements.
 

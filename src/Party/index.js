@@ -191,6 +191,14 @@ class Party {
     return new this(app, data);
   }
 
+  static async lookupUser(app, id) {
+    const { data } = await app.http.sendGet(
+      `https://party-service-prod.ol.epicgames.com/party/api/v1/${app.id}/user/${id}`,
+      `${app.auth.tokenType} ${app.auth.accessToken}`,
+    );
+    return data;
+  }
+
   static async create(app, config) { 
     if (!app.communicator) return null;
     config = {
@@ -217,7 +225,7 @@ class Party {
         },
         meta: {
           'urn:epic:cfg:party-type-id_s': 'default',
-          'urn:epic:cfg:build-id_s': String(app.config.netCL),
+          'urn:epic:cfg:build-id_s': String(app.config.partyBuildId),
           'urn:epic:cfg:join-request-action_s': 'Manual',
           'urn:epic:cfg:chat-enabled_b': String(config.chatEnabled),
         },

@@ -170,6 +170,7 @@ class Communicator extends EventEmitter {
 
         const friends = stanza.roster.items ? stanza.roster.items.map(friend => ({
           accountId: friend.jid.local,
+          jid: friend.jid,
         })) : [];
 
         this.emit('friends', friends);
@@ -211,6 +212,18 @@ class Communicator extends EventEmitter {
 
         switch (body.type) {
 
+          case 'com.epicgames.social.party.notification.v0.PING': {
+            
+            if (this.app.id !== body.ns) break;
+
+            const friend = this.app.launcher.communicatorFriends.find(f => f.id === body.pinger_id);
+            if (!friend || !friend.status) break;
+            
+            const party = await this.app.Party.lookup(this.app, friend.status.getPartyId());
+            await this.app.PartyJoinRequest.send(party);
+
+          } break;
+
           case 'com.epicgames.social.party.notification.v0.MEMBER_LEFT': {
 
             if (this.app.id === 'Launcher') break;
@@ -223,6 +236,21 @@ class Communicator extends EventEmitter {
             this.emit('party:member:left', member);
             this.emit(`party#${this.app.party.id}:member:left`, member);
             this.emit(`party#${this.app.party.id}:member#${member.id}:left`, member);
+
+          } break;
+
+          case 'com.epicgames.social.party.notification.v0.MEMBER_EXPIRED': {
+
+            if (this.app.id === 'Launcher') break;
+            if (!this.app.party || this.app.party.id !== body.party_id) break;
+
+            const member = this.app.party.findMember(body.account_id);
+            if (!member) break;
+            this.app.party.removeMember(member);
+
+            this.emit('party:member:expired', member);
+            this.emit(`party#${this.app.party.id}:member:expired`, member);
+            this.emit(`party#${this.app.party.id}:member#${member.id}:expired`, member);
 
           } break;
 

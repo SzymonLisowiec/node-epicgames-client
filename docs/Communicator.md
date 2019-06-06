@@ -84,6 +84,12 @@ app.on('party:member:left', (member) => {
   console.log(`Member ${member.name} left!`);
 });
 ```
+### party:member:expired
+```javascript
+app.on('party:member:expired', (member) => {
+  console.log(`Member ${member.name} expired!`);
+});
+```
 ### party:member:promoted
 Emitted while someone has been promoted to e.g. leader.
 ```javascript

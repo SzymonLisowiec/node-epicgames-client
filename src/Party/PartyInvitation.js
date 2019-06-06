@@ -28,16 +28,22 @@ class PartyInvitation {
   }
 
   static async send(party, accountId) {
-    await party.app.http.sendPost(
-      `https://party-service-prod.ol.epicgames.com/party/api/v1/${party.app.id}/parties/${party.id}/invites/${accountId}`,
+    // await party.app.http.sendPost(
+    //   `https://party-service-prod.ol.epicgames.com/party/api/v1/${party.app.id}/parties/${party.id}/invites/${accountId}`,
+    //   `${party.app.auth.tokenType} ${party.app.auth.accessToken}`,
+    //   {
+    //     'urn:epic:invite:platformdata_s': '',
+    //     'urn:epic:member:dn_s': party.app.launcher.account.displayName,
+    //     'urn:epic:conn:platform_s': party.app.config.platform.short,
+    //     'urn:epic:conn:type_s': 'game',
+    //     'urn:epic:cfg:build-id_s': party.app.config.partyBuildId,
+    //   },
+    // );
+    await party.app.http.send(
+      'POST',
+      `https://party-service-prod.ol.epicgames.com/party/api/v1/${party.app.id}/user/${accountId}/pings/${party.app.launcher.account.id}`,
       `${party.app.auth.tokenType} ${party.app.auth.accessToken}`,
-      {
-        'urn:epic:invite:platformdata_s': '',
-        'urn:epic:member:dn_s': party.app.launcher.account.displayName,
-        'urn:epic:conn:platform_s': party.app.config.platform.short,
-        'urn:epic:conn:type_s': 'game',
-        'urn:epic:cfg:build-id_s': party.app.config.netCL,
-      },
+      {},
     );
   }
 

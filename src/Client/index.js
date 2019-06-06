@@ -107,6 +107,7 @@ class Launcher extends Events {
 
     this.account = null;
     this.communicator = null;
+    this.communicatorFriends = [];
 
     this.auth = null;
     this.entitlements = [];
@@ -252,6 +253,29 @@ class Launcher extends Events {
 
       if (this.config.useCommunicator) {
         this.communicator = new this.Communicator(this);
+
+        this.communicator.on('friends', (friends) => {
+          friends = friends.map(friend => new Friend(this, { 
+            ...friend,
+            status: 'ACCEPTED',
+          }));
+          this.communicatorFriends = friends;
+        });
+
+        this.communicator.on('friend:added', (friend) => {
+          this.communicatorFriends.push(friend);
+        });
+
+        this.communicator.on('friend:removed', (removedFriend) => {
+          const friend = this.communicatorFriends.find(f => f.id === removedFriend.id);
+          if (friend) this.communicatorFriends.splice(this.communicatorFriends.indexOf(friend), 1);
+        });
+
+        this.communicator.on('friend:status', (status) => {
+          const friend = this.communicatorFriends.find(f => f.id === status.sender.id);
+          if (friend) friend.status = status;
+        });
+
         await this.communicator.connect();
       }
 

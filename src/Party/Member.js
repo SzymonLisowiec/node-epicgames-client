@@ -10,7 +10,7 @@ class Member {
     }
     this.joinedAt = new Date(data.joined_at);
     this.role = data.role || null;
-    this.revision = 0;
+    this.revision = data.revision || 0;
     this.meta = new this.app.PartyMemberMeta(this, data.meta);
   }
 

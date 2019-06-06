@@ -1,5 +1,4 @@
 const User = require('../User');
-const Party = require('../Party');
 
 class Status {
 
@@ -40,11 +39,12 @@ class Status {
 
   }
 
-  async readParty() {
+  getPartyId() {
     const propertyKeys = Object.keys(this.properties);
     if (propertyKeys.length === 0) return null;
-    const joinInfoKey = propertyKeys.find(key => /^party\.\joininfodata\.([0-9]{0,})\_j$/.test(key));
+    const joinInfoKey = propertyKeys.find(key => /^party\.joininfodata\.([0-9]{0,})_j$/.test(key));
     const joinInfoData = this.properties[joinInfoKey];
+    return joinInfoData.partyId;
   }
 
 }

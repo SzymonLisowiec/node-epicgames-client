@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.13
+- You can accept/reject invitation to the party from now on.
+- Fixed error `errors.com.epicgames.social.party.party_not_found` while joining to private party.
+- Integration with new Fortnite update.
+- Other fixes
+
 ## 2.0.12
 - Fixed error `user_has_party`.
 - Integration with new Fortnite update.

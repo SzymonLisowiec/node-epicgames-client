@@ -221,10 +221,10 @@ class Communicator extends EventEmitter {
               `https://party-service-prod.ol.epicgames.com/party/api/v1/${this.app.id}/user/${this.app.launcher.account.id}`,
             );
             
-            const invitation = data.invites.find(invite => invite.sent_by === body.pinger_id && invite.status === 'SENT');
+            let invitation = data.invites.find(invite => invite.sent_by === body.pinger_id && invite.status === 'SENT');
 
             if (!invitation) {
-              this.app.launcher.debug.print('Fortnite: Cannot join into the party. Reason: No active invitation');
+              this.launcher.debug.print('Fortnite: Cannot join into the party. Reason: No active invitation');
               break;
             }
 
@@ -233,12 +233,16 @@ class Communicator extends EventEmitter {
               || typeof invitation.meta['urn:epic:cfg:build-id_s'] !== 'string'
               || invitation.meta['urn:epic:cfg:build-id_s'] !== this.app.config.partyBuildId
             ) {
-              this.app.launcher.debug.print('Fortnite: Cannot join into the party. Reason: Incompatible build id.');
+              this.launcher.debug.print('Fortnite: Cannot join into the party. Reason: Incompatible build id.');
               break;
             }
 
             const party = await this.app.Party.lookup(this.app, invitation.party_id);
-            await this.app.PartyJoinRequest.send(party);
+            invitation = new this.app.PartyInvitation(party, invitation);
+
+            this.emit('party:invitation', invitation);
+            this.emit(`party#${party.id}:invitation`, invitation);
+            this.emit(`party#${party.id}:invitation#${body.pinger_id}`, invitation);
 
           } break;
 
@@ -246,7 +250,7 @@ class Communicator extends EventEmitter {
 
             if (this.app.id === 'Launcher') break;
             if (!this.app.party || this.app.party.id !== body.party_id) break;
-
+            
             const member = this.app.party.findMember(body.account_id);
             if (!member) break;
             this.app.party.removeMember(member);
@@ -356,7 +360,7 @@ class Communicator extends EventEmitter {
 
             if (this.app.id === 'Launcher') break;
             if (!this.app.party || this.app.party.id !== body.party_id) break;
-
+            
             let member = this.app.party.findMember(body.account_id);
             if (!member) {
               member = new this.app.PartyMember(this.app.party, body);
@@ -397,9 +401,9 @@ class Communicator extends EventEmitter {
           } break;
 
           case 'com.epicgames.social.party.notification.v0.INITIAL_INVITE': {
-            
+
             // This event probably is deprecated!
-            this.app.launcher.debug.print('Fortnite: Debug: INITIAL_INVITE');
+            this.launcher.debug.print('Fortnite: Debug: INITIAL_INVITE');
 
             if (this.app.id === 'Launcher') break;
             const party = await this.app.Party.lookup(this.app, body.party_id);

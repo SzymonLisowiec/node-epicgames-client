@@ -67,11 +67,15 @@ Leaves the party.
   - **tournamentId** - string, optional
   - **eventWindowId** - string, optional
 
+### setPrivacy(privacy)
+- **Arguments**
+  - **privacy** - [EPartyPrivacy](/EPartyPrivacy.html)
+
 ### kick(member)
 - **Arguments**
   - **member** - member's account id or `PartyMember` object
 
-### kick(member)
+### promote(member)
 Promote member to leader role.
 - **Arguments**
   - **member** - member's account id or `PartyMember` object

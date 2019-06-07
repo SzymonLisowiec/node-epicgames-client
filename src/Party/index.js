@@ -106,6 +106,10 @@ class Party {
   }
 
   updatePresence() {
+    if (
+      this.config.privacy.presencePermission === 'None'
+      || (this.config.privacy.presencePermission === 'Leader' && this.leader.id !== this.me.id)
+    ) return;
     this.app.communicator.updateStatus({
       Status: `Lobby Battle Royale - ${this.members.length} / ${this.config.maxSize}`,
       bIsPlaying: true,

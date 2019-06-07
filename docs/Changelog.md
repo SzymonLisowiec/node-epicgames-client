@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2.0.13
+- Added possibility to fetch more than 100 profiles through `getProfiles()` method. Thanks [iXyles](https://github.com/iXyles) for [PR](https://github.com/SzymonLisowiec/node-epicgames-client/pull/47).
 - You can accept/reject invitation to the party from now on.
 - Fixed error `errors.com.epicgames.social.party.party_not_found` while joining to private party.
 - Integration with new Fortnite update.

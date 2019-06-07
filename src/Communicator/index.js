@@ -287,6 +287,7 @@ class Communicator extends EventEmitter {
               m.role = null;
             });
             member.role = 'CAPTAIN';
+            this.app.party.updatePresence();
 
             this.emit('party:member:promoted', member);
             this.emit(`party#${this.app.party.id}:member:promoted`, member);

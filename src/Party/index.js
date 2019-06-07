@@ -1,3 +1,5 @@
+const EPartyPrivacy = require('../../enums/PartyPrivacy');
+
 class Party {
 
   constructor(app, data) {
@@ -106,10 +108,31 @@ class Party {
   }
 
   updatePresence() {
+    let partyJoinInfoData;
+    
     if (
       this.config.privacy.presencePermission === 'None'
       || (this.config.privacy.presencePermission === 'Leader' && this.leader.id !== this.me.id)
-    ) return;
+    ) {
+      partyJoinInfoData = {
+        bInPrivate: true,
+      };
+    } else {
+      partyJoinInfoData = {
+        sourceId: this.app.launcher.account.id,
+        sourceDisplayName: this.app.launcher.account.name,
+        sourcePlatform: this.app.config.platform.short,
+        partyId: this.id,
+        partyTypeId: 286331153,
+        key: 'k',
+        appId: this.app.id,
+        buildId: String(this.app.config.netCL),
+        partyFlags: -2024557306,
+        notAcceptingReason: 0,
+        pc: this.members.length,
+      };
+    }
+
     this.app.communicator.updateStatus({
       Status: `Lobby Battle Royale - ${this.members.length} / ${this.config.maxSize}`,
       bIsPlaying: true,
@@ -117,19 +140,7 @@ class Party {
       bHasVoiceSupport: false,
       SessionId: '',
       Properties: {
-        'party.joininfodata.286331153_j': {
-          sourceId: this.app.launcher.account.id,
-          sourceDisplayName: this.app.launcher.account.name,
-          sourcePlatform: this.app.config.platform.short,
-          partyId: this.id,
-          partyTypeId: 286331153,
-          key: 'k',
-          appId: this.app.id,
-          buildId: String(this.app.config.netCL),
-          partyFlags: -2024557306,
-          notAcceptingReason: 0,
-          pc: this.members.length,
-        },
+        'party.joininfodata.286331153_j': partyJoinInfoData,
         FortBasicInfo_j: {
           homeBaseRating: 1,
         },
@@ -145,6 +156,7 @@ class Party {
         },
       },
     });
+
   }
 
   update(data) {
@@ -157,6 +169,15 @@ class Party {
     this.config.inviteTTL = data.invite_ttl_seconds;
     this.meta.update(data.party_state_updated, true);
     this.meta.remove(data.party_state_removed);
+
+    let privacy = this.meta.get('PrivacySettings_j');
+    privacy = Object.values(EPartyPrivacy).find((p) => {
+      return p.partyType === privacy.PrivacySettings.partyType
+      && p.inviteRestriction === privacy.PrivacySettings.partyInviteRestriction
+      && p.onlyLeaderFriendsCanJoin === privacy.PrivacySettings.bOnlyLeaderFriendsCanJoin;
+    });
+    if (privacy) this.config.privacy = privacy;
+    
   }
 
   parseConfiguration(config) {

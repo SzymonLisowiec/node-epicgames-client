@@ -400,27 +400,28 @@ class Communicator extends EventEmitter {
 
           } break;
 
-          case 'com.epicgames.social.party.notification.v0.INITIAL_INVITE': {
+          case 'com.epicgames.social.party.notification.v0.INITIAL_INVITE':
+
+            if (this.app.id !== body.ns) break;
 
             // This event probably is deprecated!
             this.launcher.debug.print('Fortnite: Debug: INITIAL_INVITE');
 
-            if (this.app.id === 'Launcher') break;
-            const party = await this.app.Party.lookup(this.app, body.party_id);
-            const invitation = new this.app.PartyInvitation(party, {
-              appId: body.ns,
-              meta: body.meta,
-              accountId: body.inviter_id,
-              accountName: body.inviter_dn,
-              jid: stanza.from,
-              time: new Date(body.sent),
-            });
+            // const party = await this.app.Party.lookup(this.app, body.party_id);
+            // const invitation = new this.app.PartyInvitation(party, {
+            //   appId: body.ns,
+            //   meta: body.meta,
+            //   accountId: body.inviter_id,
+            //   accountName: body.inviter_dn,
+            //   jid: stanza.from,
+            //   time: new Date(body.sent),
+            // });
 
-            this.emit('party:invitation', invitation);
-            this.emit(`party#${party.id}:invitation`, invitation);
-            this.emit(`party#${party.id}:invitation#${body.invitee_id}`, invitation);
+            // this.emit('party:invitation', invitation);
+            // this.emit(`party#${party.id}:invitation`, invitation);
+            // this.emit(`party#${party.id}:invitation#${body.invitee_id}`, invitation);
 
-          } break;
+            break;
 
           case 'com.epicgames.social.party.notification.v0.INVITE_CANCELLED':
 

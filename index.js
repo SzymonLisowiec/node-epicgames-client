@@ -12,5 +12,6 @@ module.exports = {
   EUserState: require('./enums/UserState'),
   EInputType: require('./enums/InputType'),
   EPlatform: require('./enums/Platform'),
+  EPartyPrivacy: require('./enums/PartyPrivacy'),
 
 };

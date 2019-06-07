@@ -10,13 +10,14 @@ class Member {
     }
     this.joinedAt = new Date(data.joined_at);
     this.role = data.role || null;
-    this.revision = 0;
+    this.revision = data.revision || 0;
     this.meta = new this.app.PartyMemberMeta(this, data.meta);
   }
 
   update(data) {
     if (data.revision > this.revision) this.revision = data.revision;
     this.meta.update(data.member_state_updated, true);
+    this.meta.remove(data.member_state_removed);
   }
 
   async kick() {
@@ -30,17 +31,6 @@ class Member {
     );
 
     this.party.removeMember(this);
-  }
-
-  async promote() {
-    if (this.party.me.id !== this.party.leader.id) throw new Error('You aren\'t the party leader!');
-    if (this.party.me.id === this.id) throw new Error('You can\'t promote yourself!');
-
-    await this.app.http.send(
-      'POST',
-      `https://party-service-prod.ol.epicgames.com/party/api/v1/${this.app.id}/parties/${this.party.id}/members/${this.id}/promote`,
-      `${this.app.auth.tokenType} ${this.app.auth.accessToken}`,
-    );
   }
 
   async patch(updated) {

@@ -71,6 +71,11 @@ Leaves the party.
 - **Arguments**
   - **member** - member's account id or `PartyMember` object
 
+### kick(member)
+Promote member to leader role.
+- **Arguments**
+  - **member** - member's account id or `PartyMember` object
+
 ### static::lookup(app, id)
 Lookups party by id.
 - **Arguments**
@@ -82,5 +87,5 @@ Lookups party by id.
 Opens new party.
 - **Arguments**
   - **app** - `Application` object, e.g. `epicgames-fortnite-client`
-  - **config** - party's configuration
+  - **config** - optional, party's configuration, same as [defaultPartyConfig](/Client.html#defaultpartyconfig) option
 - **Returns:** `Party` object

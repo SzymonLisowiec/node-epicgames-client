@@ -73,6 +73,32 @@ Client's language.
 - **Type:** `string`
 - **Default:** `en-EN`
 
+### createPartyOnStart
+Set to `false` if you don't want join to party after login.
+- **Type:** `boolean`
+- **Default:** `true`
+
+### defaultPartyConfig
+- **Type:** `object`
+- **Default:**
+```javascript
+{
+  privacy: EPartyPrivacy.PUBLIC,
+  joinConfirmation: false,
+  joinability: 'OPEN',
+  maxSize: 16,
+  subType: 'default',
+  type: 'default',
+  inviteTTL: 14400,
+  chatEnabled: true,
+}
+```
+
+### autoPresenceUpdating
+Set to `false` if you want set our custom status e.g. "Hello Wolrd.". Defautly is `true` and bot updating status as real user.
+- **Type:** `boolean`
+- **Default:** `true`
+
 ## Properties
 
 ### id
@@ -83,6 +109,9 @@ Equals `Launcher`.
 
 ### communicator
 [Communicator object](./Communicator.html)
+
+### communicatorFriends
+List of [Friend](./Friend.html) received from XMPP.
 
 ### entitlements
 Account's entitlements.

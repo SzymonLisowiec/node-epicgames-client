@@ -620,25 +620,23 @@ class Launcher extends Events {
 
       const promises = [];
 
-      for (let i = 0; i <= Math.floor(qs.length/limit); i++) {
-        const accounts = qs.slice(i*limit, limit + (limit*i))
-                          .map(id => (typeof id === 'object' ? id.id : id))
-                          .map(id => `&accountId=${id}`)
-                          .join('')
-                          .substr(1)
-        promises.push(
-            this.http.sendGet(
-              `${ENDPOINT.ACCOUNT}?${accounts}`,
-              `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
-          )
-        );
+      for (let i = 0; i <= Math.floor(qs.length / limit); i += 1) {
+        const accounts = qs.slice(i * limit, limit + (limit * i))
+          .map(id => (typeof id === 'object' ? id.id : id))
+          .map(id => `&accountId=${id}`)
+          .join('')
+          .substr(1);
+        promises.push(this.http.sendGet(
+          `${ENDPOINT.ACCOUNT}?${accounts}`,
+          `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
+        ));
       }
 
       const result = await Promise.all(promises);
       let data = [];
 
-      for (let chunk in result) {
-        data = [...result[chunk].data.map(account => new User(this, {
+      for (let i = 0; i < result.length; i += 1) {
+        data = [...result[i].data.map(account => new User(this, {
           id: account.id,
           displayName: account.displayName,
           externalAuths: account.externalAuths,

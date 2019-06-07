@@ -7,9 +7,25 @@ class PartyInvitation {
     this.party = party;
     this.app = this.party.app;
     
-    this.meta = data.meta;
-    this.appId = data.appId;
-    this.time = data.time;
+    this.meta = data.meta || [];
+    this.time = data.time || data.sent_at;
+
+    /*
+    TODO: add another params
+    { party_id: '2d235a015c174366a6aa90330ec193c7',
+      sent_by: '9a1d43b1d826420e9fa393a79b74b2ff',
+      meta:
+      { 'urn:epic:conn:type_s': 'game',
+        'urn:epic:conn:platform_s': 'WIN',
+        'urn:epic:member:dn_s': 'Kysune',
+        'urn:epic:cfg:build-id_s': '1:1:6477402',
+        'urn:epic:invite:platformdata_s': '' },
+      sent_to: 'd8f16571cfa94f018cc75df779b04ea6',
+      sent_at: '2019-06-07T14:56:42.486Z',
+      updated_at: '2019-06-07T14:56:42.486Z',
+      expires_at: '2019-06-07T18:56:42.486Z',
+      status: 'SENT' }
+    */
 
   }
 

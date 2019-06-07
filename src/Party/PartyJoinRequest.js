@@ -6,10 +6,6 @@ class PartyJoinRequest {
 
   static async send(party) {
     const { app } = party;
-    if (app.party) {
-      await app.party.leave();
-      app.party = party;
-    }
     const { data } = await app.http.sendPost(
       `https://party-service-prod.ol.epicgames.com/party/api/v1/${app.id}/parties/${party.id}/members/${app.launcher.account.id}/join`,
       `${app.auth.tokenType} ${app.auth.accessToken}`,

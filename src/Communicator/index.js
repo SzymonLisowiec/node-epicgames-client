@@ -213,14 +213,36 @@ class Communicator extends EventEmitter {
         switch (body.type) {
 
           case 'com.epicgames.social.party.notification.v0.PING': {
+            // TODO: code refactoring
             
             if (this.app.id !== body.ns) break;
-
-            const friend = this.app.launcher.communicatorFriends.find(f => f.id === body.pinger_id);
-            if (!friend || !friend.status) break;
             
-            const party = await this.app.Party.lookup(this.app, friend.status.getPartyId());
-            await this.app.PartyJoinRequest.send(party);
+            const { data } = await this.app.http.sendGet(
+              `https://party-service-prod.ol.epicgames.com/party/api/v1/${this.app.id}/user/${this.app.launcher.account.id}`,
+            );
+            
+            let invitation = data.invites.find(invite => invite.sent_by === body.pinger_id && invite.status === 'SENT');
+
+            if (!invitation) {
+              this.launcher.debug.print('Fortnite: Cannot join into the party. Reason: No active invitation');
+              break;
+            }
+
+            if (
+              typeof invitation.meta !== 'object'
+              || typeof invitation.meta['urn:epic:cfg:build-id_s'] !== 'string'
+              || invitation.meta['urn:epic:cfg:build-id_s'] !== this.app.config.partyBuildId
+            ) {
+              this.launcher.debug.print('Fortnite: Cannot join into the party. Reason: Incompatible build id.');
+              break;
+            }
+
+            const party = await this.app.Party.lookup(this.app, invitation.party_id);
+            invitation = new this.app.PartyInvitation(party, invitation);
+
+            this.emit('party:invitation', invitation);
+            this.emit(`party#${party.id}:invitation`, invitation);
+            this.emit(`party#${party.id}:invitation#${body.pinger_id}`, invitation);
 
           } break;
 
@@ -228,7 +250,7 @@ class Communicator extends EventEmitter {
 
             if (this.app.id === 'Launcher') break;
             if (!this.app.party || this.app.party.id !== body.party_id) break;
-
+            
             const member = this.app.party.findMember(body.account_id);
             if (!member) break;
             this.app.party.removeMember(member);
@@ -265,6 +287,7 @@ class Communicator extends EventEmitter {
               m.role = null;
             });
             member.role = 'CAPTAIN';
+            this.app.party.updatePresence();
 
             this.emit('party:member:promoted', member);
             this.emit(`party#${this.app.party.id}:member:promoted`, member);
@@ -338,7 +361,7 @@ class Communicator extends EventEmitter {
 
             if (this.app.id === 'Launcher') break;
             if (!this.app.party || this.app.party.id !== body.party_id) break;
-
+            
             let member = this.app.party.findMember(body.account_id);
             if (!member) {
               member = new this.app.PartyMember(this.app.party, body);
@@ -378,24 +401,28 @@ class Communicator extends EventEmitter {
 
           } break;
 
-          case 'com.epicgames.social.party.notification.v0.INITIAL_INVITE': {
+          case 'com.epicgames.social.party.notification.v0.INITIAL_INVITE':
 
-            if (this.app.id === 'Launcher') break;
-            const party = await this.app.Party.lookup(this.app, body.party_id);
-            const invitation = new this.app.PartyInvitation(party, {
-              appId: body.ns,
-              meta: body.meta,
-              accountId: body.inviter_id,
-              accountName: body.inviter_dn,
-              jid: stanza.from,
-              time: new Date(body.sent),
-            });
+            if (this.app.id !== body.ns) break;
 
-            this.emit('party:invitation', invitation);
-            this.emit(`party#${party.id}:invitation`, invitation);
-            this.emit(`party#${party.id}:invitation#${body.invitee_id}`, invitation);
+            // This event probably is deprecated!
+            this.launcher.debug.print('Fortnite: Debug: INITIAL_INVITE');
 
-          } break;
+            // const party = await this.app.Party.lookup(this.app, body.party_id);
+            // const invitation = new this.app.PartyInvitation(party, {
+            //   appId: body.ns,
+            //   meta: body.meta,
+            //   accountId: body.inviter_id,
+            //   accountName: body.inviter_dn,
+            //   jid: stanza.from,
+            //   time: new Date(body.sent),
+            // });
+
+            // this.emit('party:invitation', invitation);
+            // this.emit(`party#${party.id}:invitation`, invitation);
+            // this.emit(`party#${party.id}:invitation#${body.invitee_id}`, invitation);
+
+            break;
 
           case 'com.epicgames.social.party.notification.v0.INVITE_CANCELLED':
 

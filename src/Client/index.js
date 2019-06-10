@@ -1093,6 +1093,24 @@ class Launcher extends Events {
      || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
     csrfToken = csrfToken.value;
 
+    let xsrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'XSRF-TOKEN')
+     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'XSRF-TOKEN');
+    xsrfToken = xsrfToken.value;
+
+    await this.http.sendPost(
+      'https://www.epicgames.com/account/v2/refresh-csrf',
+      null,
+      {},
+      true,
+      {
+        'x-xsrf-token': xsrfToken,
+      },
+    );
+
+    xsrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'XSRF-AM-TOKEN')
+     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'XSRF-AM-TOKEN');
+    xsrfToken = xsrfToken.value;
+
     const {
       data: {
         verify: {
@@ -1102,7 +1120,7 @@ class Launcher extends Events {
         },
       },
     } = await this.http.sendPost(
-      'https://www.epicgames.com/account/security/ajaxUpdateTwoFactorAuthSettings',
+      'https://www.epicgames.com/account/v2/security/ajaxUpdateTwoFactorAuthSettings',
       null,
       {
         type,
@@ -1112,7 +1130,7 @@ class Launcher extends Events {
       {
         'x-csrf-token': csrfToken,
         'x-requested-with': 'XMLHttpRequest',
-        'x-xsrf-token': 'invalid',
+        'x-xsrf-token': xsrfToken,
       },
     );
 
@@ -1142,7 +1160,7 @@ class Launcher extends Events {
     csrfToken = csrfToken.value;
 
     const { data } = await this.http.sendPost(
-      'https://www.epicgames.com/account/security/ajaxUpdateTwoFactorAuthSettings',
+      'https://www.epicgames.com/account/v2/security/ajaxUpdateTwoFactorAuthSettings',
       null,
       {
         type: `${type}_challenge`,
@@ -1154,7 +1172,7 @@ class Launcher extends Events {
       {
         'x-csrf-token': csrfToken,
         'x-requested-with': 'XMLHttpRequest',
-        'x-xsrf-token': 'invalid',
+        'x-xsrf-token': xsrfToken,
       },
     );
 
@@ -1178,12 +1196,30 @@ class Launcher extends Events {
      || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
     csrfToken = csrfToken.value;
 
+    let xsrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'XSRF-TOKEN')
+     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'XSRF-TOKEN');
+    xsrfToken = xsrfToken.value;
+
+    await this.http.sendPost(
+      'https://www.epicgames.com/account/v2/refresh-csrf',
+      null,
+      {},
+      true,
+      {
+        'x-xsrf-token': xsrfToken,
+      },
+    );
+
+    xsrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'XSRF-AM-TOKEN')
+     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'XSRF-AM-TOKEN');
+    xsrfToken = xsrfToken.value;
+    
     const {
       data: {
         isSuccess,
       },
     } = await this.http.sendPost(
-      'https://www.epicgames.com/account/security/ajaxRemoveTwoFactorAuthMethod',
+      'https://www.epicgames.com/account/v2/security/ajaxRemoveTwoFactorAuthMethod',
       null,
       {
         type,
@@ -1192,7 +1228,7 @@ class Launcher extends Events {
       {
         'x-csrf-token': csrfToken,
         'x-requested-with': 'XMLHttpRequest',
-        'x-xsrf-token': 'invalid',
+        'x-xsrf-token': xsrfToken,
       },
     );
 

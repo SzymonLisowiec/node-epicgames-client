@@ -636,11 +636,11 @@ class Launcher extends Events {
       let data = [];
 
       for (let i = 0; i < result.length; i += 1) {
-        data = [...result[i].data.map(account => new User(this, {
+        data = data.concat([...result[i].data.map(account => new User(this, {
           id: account.id,
           displayName: account.displayName,
           externalAuths: account.externalAuths,
-        }))];
+        }))]);
       }
 
       return data;

@@ -5,6 +5,7 @@ const UUID = require('uuid/v4');
 const EUserState = require('../../enums/UserState');
 
 const Status = require('./Status');
+const Collector = require('../Collector');
 const Friend = require('../Friend');
 const FriendRequest = require('../FriendRequest');
 const FriendMessage = require('./FriendMessage');

@@ -1,4 +1,4 @@
-const EventEmitter = require('events').EventEmitter;
+const EventEmitter = require('events');
 
 class Collector extends EventEmitter {
   constructor(communicator, fnEvent, filter, time) {

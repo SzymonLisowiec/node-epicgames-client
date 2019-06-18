@@ -45,6 +45,10 @@ class Communicator extends EventEmitter {
     if (propertyKeys.length === 0) return null;
     const joinInfoKey = propertyKeys.find(key => /^party\.joininfodata\.([0-9]{0,})_j$/.test(key));
     const joinInfoData = status.properties[joinInfoKey];
+    
+    let now = new Date(Date.now());
+    let expiresAt = new Date(Date.now());
+    expiresAt.setHours(4);
 
     let invitation = {
       party_id: joinInfoData['partyId'],
@@ -56,9 +60,9 @@ class Communicator extends EventEmitter {
         'urn:epic:cfg:build-id_s': joinInfoData['buildId'],
         'urn:epic:invite:platformdata_s': '' },
       sent_to: this.launcher.account.id,
-      sent_at: new Date(Date.now()).toISOString(),
-      updated_at: new Date(Date.now()).toISOString(),
-      expires_at: new Date(Date.now()).setHours(4),
+      sent_at: now.toISOString(),
+      updated_at: now.toISOString(),
+      expires_at: expiresAt.toISOString(),
       status: 'SENT'
     }
     return invitation;

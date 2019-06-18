@@ -252,7 +252,7 @@ class Communicator extends EventEmitter {
             
             let invitation = data.invites.find(invite => invite.sent_by === body.pinger_id && invite.status === 'SENT');
             if (!invitation) {
-              let status = await this.getStatus(body.pinger_id);
+              let status = await this.getFriendStatus(body.pinger_id);
               invitation = this.makeInvFromStatus(status);
 
               if(!invitation) {
@@ -593,7 +593,7 @@ class Communicator extends EventEmitter {
     });
   }
 
-  async getStatus(id) {
+  async getFriendStatus(id) {
     await this.sendProbe(`${id}@${this.host}`);
 
     try {

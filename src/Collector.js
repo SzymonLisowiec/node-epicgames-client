@@ -10,9 +10,6 @@ class Collector extends EventEmitter {
 
     this.handle = this.handle.bind(this);
     this.communicator.addListener(this.fnEvent, this.handle);
-    // this.communicator.addListener(this.fnEvent, m => {
-    //   console.log("testing")
-    // });
     if(this.time) this.timeout = setTimeout(() => this.stop("TIMEOUT"), this.time);
   };
 

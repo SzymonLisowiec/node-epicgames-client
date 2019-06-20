@@ -5,6 +5,7 @@ const UUID = require('uuid/v4');
 const EUserState = require('../../enums/UserState');
 
 const Status = require('./Status');
+const Collector = require('../Collector');
 const Friend = require('../Friend');
 const FriendRequest = require('../FriendRequest');
 const FriendMessage = require('./FriendMessage');
@@ -37,6 +38,36 @@ class Communicator extends EventEmitter {
 
   makeJID(...args) {
     return new JID(...args);
+  }
+  
+  makeInvFromStatus(status) {
+    const propertyKeys = Object.keys(status.properties);
+    if (propertyKeys.length === 0) return null;
+    const joinInfoKey = propertyKeys.find(key => /^party\.joininfodata\.([0-9]{0,})_j$/.test(key));
+    const joinInfoData = status.properties[joinInfoKey];
+    
+    if(joinInfoData.bInPrivate) return;
+    
+    let now = new Date(Date.now());
+    let expiresAt = new Date(Date.now());
+    expiresAt.setHours(4);
+
+    let invitation = {
+      party_id: joinInfoData.partyId,
+      sent_by: status.sender.id,
+      meta:
+      { 'urn:epic:conn:type_s': 'game',
+        'urn:epic:conn:platform_s': joinInfoData.sourcePlatform,
+        'urn:epic:member:dn_s': joinInfoData.sourceDisplayName,
+        'urn:epic:cfg:build-id_s': joinInfoData.buildId,
+        'urn:epic:invite:platformdata_s': '' },
+      sent_to: this.launcher.account.id,
+      sent_at: now.toISOString(),
+      updated_at: now.toISOString(),
+      expires_at: expiresAt.toISOString(),
+      status: 'SENT'
+    }
+    return invitation;
   }
 
   connect(authToken) {
@@ -222,10 +253,14 @@ class Communicator extends EventEmitter {
             );
             
             let invitation = data.invites.find(invite => invite.sent_by === body.pinger_id && invite.status === 'SENT');
-
             if (!invitation) {
-              this.launcher.debug.print('Fortnite: Cannot join into the party. Reason: No active invitation');
-              break;
+              let status = await this.getFriendStatus(body.pinger_id);
+              invitation = this.makeInvFromStatus(status);
+
+              if(!invitation) {
+                this.launcher.debug.print('Fortnite: Cannot join into the party. Reason: No active invitation');
+                break;
+              }
             }
 
             if (
@@ -548,6 +583,27 @@ class Communicator extends EventEmitter {
       type: 'probe',
     });
 
+  }
+  
+  awaitEvent(fnEvent, filter, time) {
+    return new Promise((resolve, reject) => {
+      let collector = new Collector(this, fnEvent, filter, time);
+      collector.once("collect", (reason, args) => {
+        if (reason === "SUCCESS") resolve(...args);
+        reject(reason);
+      });
+    });
+  }
+
+  async getFriendStatus(id) {
+    await this.sendProbe(`${id}@${this.host}`);
+
+    try {
+      return await this.awaitEvent('friend:status', s => s.sender.id === id && s.status, 5 * 1000);
+    } catch(err) {
+      if(err === "TIMEOUT")
+        throw 'Could not retrieve status';
+    }
   }
 
 }

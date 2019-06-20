@@ -5,7 +5,6 @@ const UUID = require('uuid/v4');
 const EUserState = require('../../enums/UserState');
 
 const Status = require('./Status');
-const Collector = require('../Collector');
 const Friend = require('../Friend');
 const FriendRequest = require('../FriendRequest');
 const FriendMessage = require('./FriendMessage');
@@ -40,33 +39,34 @@ class Communicator extends EventEmitter {
     return new JID(...args);
   }
   
-  makeInvFromStatus(status) {
+  makeInvitationFromStatus(status) { // Temporary solution, this method will be removed in future.
     const propertyKeys = Object.keys(status.properties);
     if (propertyKeys.length === 0) return null;
     const joinInfoKey = propertyKeys.find(key => /^party\.joininfodata\.([0-9]{0,})_j$/.test(key));
     const joinInfoData = status.properties[joinInfoKey];
     
-    if(joinInfoData.bInPrivate) return;
+    if (joinInfoData.bIsPrivate) return null;
     
-    let now = new Date(Date.now());
-    let expiresAt = new Date(Date.now());
+    const now = new Date(Date.now());
+    const expiresAt = new Date(Date.now());
     expiresAt.setHours(4);
 
-    let invitation = {
+    const invitation = {
       party_id: joinInfoData.partyId,
       sent_by: status.sender.id,
-      meta:
-      { 'urn:epic:conn:type_s': 'game',
+      meta: {
+        'urn:epic:conn:type_s': 'game',
         'urn:epic:conn:platform_s': joinInfoData.sourcePlatform,
         'urn:epic:member:dn_s': joinInfoData.sourceDisplayName,
         'urn:epic:cfg:build-id_s': joinInfoData.buildId,
-        'urn:epic:invite:platformdata_s': '' },
+        'urn:epic:invite:platformdata_s': '',
+      },
       sent_to: this.launcher.account.id,
       sent_at: now.toISOString(),
       updated_at: now.toISOString(),
       expires_at: expiresAt.toISOString(),
-      status: 'SENT'
-    }
+      status: 'SENT',
+    };
     return invitation;
   }
 
@@ -222,12 +222,15 @@ class Communicator extends EventEmitter {
         state = stanza.show ? EUserState.Online : EUserState.Away;
       }
       
-      this.emit('friend:status', new Status(this, {
+      const status = new Status(this, {
         accountId: stanza.from.local,
         jid: stanza.from,
         state,
         status: stanza.status,
-      }));
+      });
+
+      this.emit('friend:status', status);
+      this.emit(`friend#${status.sender.id}:status`, status);
       
     });
 
@@ -254,10 +257,10 @@ class Communicator extends EventEmitter {
             
             let invitation = data.invites.find(invite => invite.sent_by === body.pinger_id && invite.status === 'SENT');
             if (!invitation) {
-              let status = await this.getFriendStatus(body.pinger_id);
-              invitation = this.makeInvFromStatus(status);
+              const status = await this.launcher.getFriendStatus(body.pinger_id);
+              invitation = this.makeInvitationFromStatus(status);
 
-              if(!invitation) {
+              if (!invitation) {
                 this.launcher.debug.print('Fortnite: Cannot join into the party. Reason: No active invitation');
                 break;
               }
@@ -478,33 +481,41 @@ class Communicator extends EventEmitter {
 
             break;
 
-          case 'FRIENDSHIP_REMOVE':
-            this.emit('friend:removed', new Friend(this.launcher, {
+          case 'FRIENDSHIP_REMOVE': {
+            const friend = new Friend(this.launcher, {
               accountId: body.from,
               status: 'REMOVED',
               time: new Date(body.timestamp),
               reason: body.reason,
-            }));
-            break;
+            });
+            this.emit('friend:removed', friend);
+            this.emit(`friend#${friend.id}:removed`, friend);
+          } break;
 
           case 'FRIENDSHIP_REQUEST':
             
             if (body.status === 'ACCEPTED') {
               
-              this.emit('friend:added', new Friend(this.launcher, {
+              const friend = new Friend(this.launcher, {
                 accountId: body.to,
                 status: body.status,
                 time: new Date(body.timestamp),
-              }));
+              });
+
+              this.emit('friend:added', friend);
+              this.emit(`friend#${friend.id}:added`, friend);
 
             } else {
 
-              this.emit('friend:request', new FriendRequest(this.launcher, {
+              const friendRequest = new FriendRequest(this.launcher, {
                 accountId: this.launcher.account.id === body.from ? body.to : body.from,
                 direction: this.launcher.account.id === body.from ? 'OUTGOING' : 'INCOMING',
                 status: body.status,
                 time: new Date(body.timestamp),
-              }));
+              });
+
+              this.emit('friend:request', friendRequest);
+              this.emit(`friend#${friendRequest.friend.id}:request`, friendRequest);
 
             }
             break;
@@ -517,12 +528,15 @@ class Communicator extends EventEmitter {
 
       } else if (stanza.type === 'chat') {
         
-        this.emit('friend:message', new FriendMessage(this, {
+        const friendMessage = new FriendMessage(this, {
           accountId: stanza.from.local,
           status: 'ACCEPTED', // status for Friend
           message: stanza.body,
           time: new Date(),
-        }));
+        });
+
+        this.emit('friend:message', friendMessage);
+        this.emit(`friend#${friendMessage.friend.id}:message`, friendMessage);
 
       } else if (stanza.type === 'error') {
 
@@ -585,25 +599,16 @@ class Communicator extends EventEmitter {
 
   }
   
-  awaitEvent(fnEvent, filter, time) {
+  waitForEvent(event, timeout) {
     return new Promise((resolve, reject) => {
-      let collector = new Collector(this, fnEvent, filter, time);
-      collector.once("collect", (reason, args) => {
-        if (reason === "SUCCESS") resolve(...args);
-        reject(reason);
+      timeout = typeof timeout === 'number' ? timeout : 5000;
+      this.on(event, (...data) => {
+        resolve(...data);
       });
+      setTimeout(() => {
+        reject(new Error(`Waiting for communicator event timeout exceeded: ${timeout} ms`));
+      }, timeout);
     });
-  }
-
-  async getFriendStatus(id) {
-    await this.sendProbe(`${id}@${this.host}`);
-
-    try {
-      return await this.awaitEvent('friend:status', s => s.sender.id === id && s.status, 5 * 1000);
-    } catch(err) {
-      if(err === "TIMEOUT")
-        throw 'Could not retrieve status';
-    }
   }
 
 }

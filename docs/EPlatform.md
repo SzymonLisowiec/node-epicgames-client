@@ -29,3 +29,6 @@ Playstation Network
 
 ### XBL
 XBOX Live
+
+### SWT
+Nintendo Switch

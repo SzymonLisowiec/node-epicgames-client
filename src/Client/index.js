@@ -72,9 +72,9 @@ class Launcher extends Events {
         short: EPlatform.WIN,
         os: 'Windows/10.0.17134.1.768.64bit',
       },
-      build: '9.6.1-4858958+++Portal+Release-Live', // named "Build" in official launcher logs
-      engineBuild: '4.21.0-6409401+++Portal+Release-Live', // named "Engine Build" in official launcher logs
-      netCL: 6409401, // named "Net CL" in official launcher logs
+      build: '10.2.3-7092195+++Portal+Release-Live', // named "Build" in official launcher logs
+      engineBuild: '4.21.0-7092195+++Portal+Release-Live', // named "Engine Version" in official launcher logs
+      netCL: 7092195, // named "Net CL" in official launcher logs
 
       http: {},
 
@@ -107,7 +107,7 @@ class Launcher extends Events {
 
     this.account = null;
     this.communicator = null;
-    this.communicatorFriends = [];
+    // this.communicatorFriends = [];
 
     this.auth = null;
     this.entitlements = [];
@@ -254,27 +254,27 @@ class Launcher extends Events {
       if (this.config.useCommunicator) {
         this.communicator = new this.Communicator(this);
 
-        this.communicator.on('friends', (friends) => {
-          friends = friends.map(friend => new Friend(this, { 
-            ...friend,
-            status: 'ACCEPTED',
-          }));
-          this.communicatorFriends = friends;
-        });
+        // this.communicator.on('friends', (friends) => {
+        //   friends = friends.map(friend => new Friend(this, { 
+        //     ...friend,
+        //     status: 'ACCEPTED',
+        //   }));
+        //   this.communicatorFriends = friends;
+        // });
 
-        this.communicator.on('friend:added', (friend) => {
-          this.communicatorFriends.push(friend);
-        });
+        // this.communicator.on('friend:added', (friend) => {
+        //   this.communicatorFriends.push(friend);
+        // });
 
-        this.communicator.on('friend:removed', (removedFriend) => {
-          const friend = this.communicatorFriends.find(f => f.id === removedFriend.id);
-          if (friend) this.communicatorFriends.splice(this.communicatorFriends.indexOf(friend), 1);
-        });
+        // this.communicator.on('friend:removed', (removedFriend) => {
+        //   const friend = this.communicatorFriends.find(f => f.id === removedFriend.id);
+        //   if (friend) this.communicatorFriends.splice(this.communicatorFriends.indexOf(friend), 1);
+        // });
 
-        this.communicator.on('friend:status', (status) => {
-          const friend = this.communicatorFriends.find(f => f.id === status.sender.id);
-          if (friend) friend.status = status;
-        });
+        // this.communicator.on('friend:status', (status) => {
+        //   const friend = this.communicatorFriends.find(f => f.id === status.sender.id);
+        //   if (friend) friend.status = status;
+        // });
 
         await this.communicator.connect();
       }
@@ -892,6 +892,17 @@ class Launcher extends Events {
    */
   async declineFriendRequest(id) {
     return this.removeFriend(id);
+  }
+
+  async getFriendStatus(id) {
+    if (!this.communicator) throw new Error('Communicator support isn\'t enabled. To use this method, set `useCommunicator` on `true`.');
+    const user = await User.get(this, id);
+    await this.communicator.sendProbe(`${user.id}@${this.communicator.host}`);
+    try {
+      return await this.communicator.waitForEvent(`friend#${user.id}:status`);
+    } catch (err) {
+      throw new Error(`Could not retrieve status, error: ${err}`);
+    }
   }
 
   /**

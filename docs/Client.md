@@ -250,6 +250,11 @@ Same as [getFriends](#getfriends), but returns only blocked friends.
   - **id** - string, account's id or name.
 - **Returns:** [Friend](./Friend.html) or `false` on failure
 
+### getFriendStatus(id)
+- **Arguments:**
+  - **id** - string, account's id or name.
+- **Returns:** [Status](./Status.html)
+
 ### acceptFriendRequest(id)
 Same as [inviteFriend(id)](#invitefriend-id).
 

@@ -38,6 +38,37 @@ class Communicator extends EventEmitter {
   makeJID(...args) {
     return new JID(...args);
   }
+  
+  makeInvitationFromStatus(status) { // Temporary solution, this method will be removed in future.
+    const propertyKeys = Object.keys(status.properties);
+    if (propertyKeys.length === 0) return null;
+    const joinInfoKey = propertyKeys.find(key => /^party\.joininfodata\.([0-9]{0,})_j$/.test(key));
+    const joinInfoData = status.properties[joinInfoKey];
+    
+    if (joinInfoData.bIsPrivate) return null;
+    
+    const now = new Date(Date.now());
+    const expiresAt = new Date(Date.now());
+    expiresAt.setHours(4);
+
+    const invitation = {
+      party_id: joinInfoData.partyId,
+      sent_by: status.sender.id,
+      meta: {
+        'urn:epic:conn:type_s': 'game',
+        'urn:epic:conn:platform_s': joinInfoData.sourcePlatform,
+        'urn:epic:member:dn_s': joinInfoData.sourceDisplayName,
+        'urn:epic:cfg:build-id_s': joinInfoData.buildId,
+        'urn:epic:invite:platformdata_s': '',
+      },
+      sent_to: this.launcher.account.id,
+      sent_at: now.toISOString(),
+      updated_at: now.toISOString(),
+      expires_at: expiresAt.toISOString(),
+      status: 'SENT',
+    };
+    return invitation;
+  }
 
   connect(authToken) {
     return new Promise((resolve) => {
@@ -191,12 +222,15 @@ class Communicator extends EventEmitter {
         state = stanza.show ? EUserState.Online : EUserState.Away;
       }
       
-      this.emit('friend:status', new Status(this, {
+      const status = new Status(this, {
         accountId: stanza.from.local,
         jid: stanza.from,
         state,
         status: stanza.status,
-      }));
+      });
+
+      this.emit('friend:status', status);
+      this.emit(`friend#${status.sender.id}:status`, status);
       
     });
 
@@ -222,10 +256,14 @@ class Communicator extends EventEmitter {
             );
             
             let invitation = data.invites.find(invite => invite.sent_by === body.pinger_id && invite.status === 'SENT');
-
             if (!invitation) {
-              this.launcher.debug.print('Fortnite: Cannot join into the party. Reason: No active invitation');
-              break;
+              const status = await this.launcher.getFriendStatus(body.pinger_id);
+              invitation = this.makeInvitationFromStatus(status);
+
+              if (!invitation) {
+                this.launcher.debug.print('Fortnite: Cannot join into the party. Reason: No active invitation');
+                break;
+              }
             }
 
             if (
@@ -443,33 +481,41 @@ class Communicator extends EventEmitter {
 
             break;
 
-          case 'FRIENDSHIP_REMOVE':
-            this.emit('friend:removed', new Friend(this.launcher, {
+          case 'FRIENDSHIP_REMOVE': {
+            const friend = new Friend(this.launcher, {
               accountId: body.from,
               status: 'REMOVED',
               time: new Date(body.timestamp),
               reason: body.reason,
-            }));
-            break;
+            });
+            this.emit('friend:removed', friend);
+            this.emit(`friend#${friend.id}:removed`, friend);
+          } break;
 
           case 'FRIENDSHIP_REQUEST':
             
             if (body.status === 'ACCEPTED') {
               
-              this.emit('friend:added', new Friend(this.launcher, {
+              const friend = new Friend(this.launcher, {
                 accountId: body.to,
                 status: body.status,
                 time: new Date(body.timestamp),
-              }));
+              });
+
+              this.emit('friend:added', friend);
+              this.emit(`friend#${friend.id}:added`, friend);
 
             } else {
 
-              this.emit('friend:request', new FriendRequest(this.launcher, {
+              const friendRequest = new FriendRequest(this.launcher, {
                 accountId: this.launcher.account.id === body.from ? body.to : body.from,
                 direction: this.launcher.account.id === body.from ? 'OUTGOING' : 'INCOMING',
                 status: body.status,
                 time: new Date(body.timestamp),
-              }));
+              });
+
+              this.emit('friend:request', friendRequest);
+              this.emit(`friend#${friendRequest.friend.id}:request`, friendRequest);
 
             }
             break;
@@ -482,12 +528,15 @@ class Communicator extends EventEmitter {
 
       } else if (stanza.type === 'chat') {
         
-        this.emit('friend:message', new FriendMessage(this, {
+        const friendMessage = new FriendMessage(this, {
           accountId: stanza.from.local,
           status: 'ACCEPTED', // status for Friend
           message: stanza.body,
           time: new Date(),
-        }));
+        });
+
+        this.emit('friend:message', friendMessage);
+        this.emit(`friend#${friendMessage.friend.id}:message`, friendMessage);
 
       } else if (stanza.type === 'error') {
 
@@ -548,6 +597,18 @@ class Communicator extends EventEmitter {
       type: 'probe',
     });
 
+  }
+  
+  waitForEvent(event, timeout) {
+    return new Promise((resolve, reject) => {
+      timeout = typeof timeout === 'number' ? timeout : 5000;
+      this.on(event, (...data) => {
+        resolve(...data);
+      });
+      setTimeout(() => {
+        reject(new Error(`Waiting for communicator event timeout exceeded: ${timeout} ms`));
+      }, timeout);
+    });
   }
 
 }

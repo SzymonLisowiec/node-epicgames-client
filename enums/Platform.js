@@ -8,5 +8,7 @@ module.exports = {
   IOS: 'IOS',
   PSN: 'PSN', // Playstation Network
   XBL: 'XBL', // XBOX Live
+  SWT: 'SWT',
+  Switch: 'SWT',
 
 };

@@ -899,7 +899,7 @@ class Launcher extends Events {
     const user = await User.get(this, id);
     await this.communicator.sendProbe(`${user.id}@${this.communicator.host}`);
     try {
-      return await this.communicator.waitForEvent(`friend#${user.id}:status`);
+      return await this.communicator.waitForEvent(`friend#${user.id}:status`, 5000, s => s.status);
     } catch (err) {
       throw new Error(`Could not retrieve status, error: ${err}`);
     }

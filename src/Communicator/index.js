@@ -599,11 +599,12 @@ class Communicator extends EventEmitter {
 
   }
   
-  waitForEvent(event, timeout) {
+  waitForEvent(event, timeout, filter) {
     return new Promise((resolve, reject) => {
       timeout = typeof timeout === 'number' ? timeout : 5000;
-      this.on(event, (...data) => {
-        resolve(...data);
+      this.on(event, (...args) => {
+        if (filter && !filter(...args)) return;
+        resolve(...args);
       });
       setTimeout(() => {
         reject(new Error(`Waiting for communicator event timeout exceeded: ${timeout} ms`));

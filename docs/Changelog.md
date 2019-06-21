@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.16
+- Added filter argument for [`waitForEvent()`](/Communicator.html#waitforevent-event-timeout) method.
+- Improved [`getFriendStatus(id)`](/Client.html#getfriendstatus-id) method.
+
 ## 2.0.15
 - Added temporary solution for problem with accepting invitations (in few cases). Thanks [Terbau](https://github.com/Terbau) for [PR](https://github.com/SzymonLisowiec/node-epicgames-client/pull/52).
 - Added [`waitForEvent()`](/Communicator.html#waitforevent-event-timeout) method to `Communicator`. Thanks [Terbau](https://github.com/Terbau) for [PR](https://github.com/SzymonLisowiec/node-epicgames-client/pull/52).

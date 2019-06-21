@@ -1,6 +1,6 @@
 {
 	"name": "epicgames-client",
-	"version": "2.0.15",
+	"version": "2.0.16",
 	"description": "Unofficial EpicGames Launcher in javascript.",
 	"main": "index.js",
 	"keywords": [

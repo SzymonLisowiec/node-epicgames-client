@@ -12,6 +12,10 @@ class Party {
     this.invites = data.invites || [];
     this.revision = data.revision || 0;
     this.meta = new this.app.PartyMeta(this, data.meta);
+
+    this.isPatching = false;
+    this.patchQueue = [];
+
   }
 
   get leader() {
@@ -80,7 +84,16 @@ class Party {
   // join() {
   // }
 
-  async patch(updated, deleted) {
+  async patch(updated, deleted, isForced) {
+
+    if (!isForced && this.isPatching) {
+      this.patchQueue.push([updated, deleted]);
+      return;
+    }
+
+    this.isPatching = true;
+    const revision = parseInt(this.revision, 10);
+    
     await this.app.http.send(
       'PATCH',
       `https://party-service-prod.ol.epicgames.com/party/api/v1/${this.app.id}/parties/${this.id}`,
@@ -104,7 +117,16 @@ class Party {
         revision: this.revision,
       },
     );
-    this.revision += 1;
+
+    if (this.revision === revision) this.revision += 1;
+
+    if (this.patchQueue.length > 0) {
+      const args = this.patchQueue.shift();
+      this.patch(...args, true);
+    } else {
+      this.isPatching = false;
+    }
+
   }
 
   updatePresence() {
@@ -261,9 +283,9 @@ class Party {
       ...data.config,
     };
     app.party = new this(app, data);
-    await app.party.waitForRevision(1);
+    // await app.party.waitForRevision(1);
     await app.party.setPrivacy(config.privacy);
-    await app.party.waitForRevision(2);
+    // await app.party.waitForRevision(2);
     return app.party;
   }
 

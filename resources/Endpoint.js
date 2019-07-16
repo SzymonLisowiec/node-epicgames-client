@@ -28,6 +28,9 @@ module.exports = Object.freeze({
   FRIENDS_BLOCKLIST: 'https://friends-public-service-prod06.ol.epicgames.com/friends/api/public/blocklist',
   FRIENDS_RECENT_PLAYERS: 'https://friends-public-service-prod06.ol.epicgames.com/friends/api/public/list/{{namespace}}/{{account_id}}/recentPlayers',
 
+  LINKS: 'https://links-public-service-live.ol.epicgames.com/links/api/{{namespace}}/mnemonic/{{mnemonic}}',
+  LINKS_AUTHOR: 'https://links-public-service-live.ol.epicgames.com/links/api/{{namespace}}/author/{{accountId}}',
+
   // TODO:
   ACCOUNT_PAYMENTS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/payment/accounts/{{account_id}}/billingaccounts/default',
   CATALOG: 'https://catalog-public-service-prod06.ol.epicgames.com/catalog/api/shared/namespace/{{namespace}}/items', // ?status=SUNSET%7CACTIVE&sortBy=creationDate&country=US&locale=pl-PL&start=0&count=1000

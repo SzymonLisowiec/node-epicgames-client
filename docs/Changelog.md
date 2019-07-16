@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.17
+- Improved [`Party`](/Party.html) and [`PartyMember`](/PartyMember.html) obejcts.
+
 ## 2.0.16
 - Added filter argument for [`waitForEvent()`](/Communicator.html#waitforevent-event-timeout) method.
 - Improved [`getFriendStatus(id)`](/Client.html#getfriendstatus-id) method.

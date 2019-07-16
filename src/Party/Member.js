@@ -12,6 +12,10 @@ class Member {
     this.role = data.role || null;
     this.revision = data.revision || 0;
     this.meta = new this.app.PartyMemberMeta(this, data.meta);
+
+    this.isPatching = false;
+    this.patchQueue = [];
+
   }
 
   update(data) {
@@ -44,18 +48,36 @@ class Member {
     );
   }
 
-  async patch(updated) {
+  async patch(updated, isForced) {
+
+    if (!isForced && this.isPatching) {
+      this.patchQueue.push([updated]);
+      return;
+    }
+
+    this.isPatching = true;
+    const revision = parseInt(this.revision, 10);
+    
     await this.app.http.send(
       'PATCH',
       `https://party-service-prod.ol.epicgames.com/party/api/v1/${this.app.id}/parties/${this.party.id}/members/${this.id}/meta`,
       `${this.app.auth.tokenType} ${this.app.auth.accessToken}`,
       {
         delete: [],
-        revision: this.revision,
+        revision,
         update: updated || this.meta.schema,
       },
     );
-    this.revision += 1;
+
+    if (this.revision === revision) this.revision += 1;
+    
+    if (this.patchQueue.length > 0) {
+      const args = this.patchQueue.shift();
+      this.patch(...args, true);
+    } else {
+      this.isPatching = false;
+    }
+
   }
 
   checkPermissions() {

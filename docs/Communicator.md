@@ -74,7 +74,7 @@ Emitted while your friend send message to you.
 ### party:updated
 Emitted while leader change party state, it means change e.g. privacy, playlist.
 ```javascript
-app.on('party:member:joined', (party) => {
+app.on('party:updated', (party) => {
   console.log(`Party#${party.id} updated!`);
 });
 ```

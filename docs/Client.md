@@ -281,8 +281,13 @@ Resends e-mail with verification link.
 Enables two factor authentication.
 - **Arguments**
   - **type** - string, `authenticator` or `email`
-  - **twoFactorCode** - string, `authenticator` or `email`
+  - **twoFactorCode** - string, number or function, see example below
 - **Returns:** `object` with `otpauth` and `secret`
+```javascript
+await launcher.enableTwoFactor('authenticator', (secret) => {
+  return require('authenticator').generateToken(secret); // https://www.npmjs.com/package/authenticator
+});
+```
 
 ### disableTwoFactor(type)
 Disables two factor authentication.

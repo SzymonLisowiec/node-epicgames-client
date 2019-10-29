@@ -30,6 +30,7 @@ module.exports = Object.freeze({
 
   LINKS: 'https://links-public-service-live.ol.epicgames.com/links/api/{{namespace}}/mnemonic/{{mnemonic}}',
   LINKS_AUTHOR: 'https://links-public-service-live.ol.epicgames.com/links/api/{{namespace}}/author/{{accountId}}',
+  ASSETS_VERSIONS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/{{platform}}',
 
   // TODO:
   ACCOUNT_PAYMENTS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/payment/accounts/{{account_id}}/billingaccounts/default',
@@ -37,7 +38,6 @@ module.exports = Object.freeze({
   ACCOUNT_EXTERNAL_AUTHS: 'https://account-public-service-prod03.ol.epicgames.com/account/api/public/account/{{account_id}}/externalAuths',
   ACCOUNT_METADATA: 'https://account-public-service-prod03.ol.epicgames.com/account/api/accounts/{{account_id}}/metadata',
   ACCOUNT_BILLING: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/payment/accounts/{{account_id}}/billingaccounts/default',
-  LAUNCHER_ASSETS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/Windows?label=Live', // label can be Live or Next at 2018-12-12
   CURRENCIES: 'https://catalog-public-service-prod06.ol.epicgames.com/catalog/api/shared/currencies', // ?start=0&count=100
   ACCOUNT_ENTITLEMENTS: 'https://entitlement-public-service-prod08.ol.epicgames.com/entitlement/api/account/{{account_id}}/entitlements', // ?start=0&count=5000
   FRIENDS_SETTINGS_EXTERNAL_SOURCES: 'https://friends-public-service-prod06.ol.epicgames.com/friends/api/v1/{{account_id}}/settings/externalSources/default', // instead default can be "steam"

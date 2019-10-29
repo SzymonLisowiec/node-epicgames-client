@@ -1055,7 +1055,15 @@ class Launcher extends Events {
         this.debug.print(`Game "${game.Name}" has been bought!`);
 
       }
+      
+      // const a = await this.checkVersionByAppName(game.Namespace, game.Name);
+      // console.dir(a);
+      
+      // options = {
 
+      //   ...options,
+      // };
+      
       const gameClient = new game.Client(this, options);
 
       if (!await gameClient.init()) { throw new Error(`Cannot initialize game ${game.Namespace}!`); }
@@ -1070,6 +1078,16 @@ class Launcher extends Events {
     }
 
     return false;
+  }
+
+  async checkAssetsVersions() {
+    const { data } = await this.http.sendGet(`${ENDPOINT.ASSETS_VERSIONS.replace('{{platform}}', 'Windows')}?label=Live`);
+    return data;
+  }
+
+  async checkVersionByAppName(namespace, appName) {
+    const assets = await this.checkAssetsVersions();
+    return assets.find(asset => asset.namespace === namespace && asset.appName === appName);
   }
 
   /**
@@ -1099,6 +1117,7 @@ class Launcher extends Events {
     const exchange = await this.account.auth.exchange();
 
     await this.http.sendGet(`https://accounts.epicgames.com/exchange?exchangeCode=${exchange.code}&redirectUrl=https%3A%2F%2Fepicgames.com%2Fsite%2Faccount`);
+    await this.http.sendGet('https://www.epicgames.com/account/password');
     
     let csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
      || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
@@ -1202,6 +1221,7 @@ class Launcher extends Events {
     const exchange = await this.account.auth.exchange();
 
     await this.http.sendGet(`https://accounts.epicgames.com/exchange?exchangeCode=${exchange.code}&redirectUrl=https%3A%2F%2Fepicgames.com%2Fsite%2Faccount`);
+    await this.http.sendGet('https://www.epicgames.com/account/password');
     
     let csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
      || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');

@@ -19,9 +19,19 @@ class PartyJoinRequest {
         },
         meta: {
           'urn:epic:member:dn_s': app.launcher.account.displayName,
-          'urn:epic:member:type_s': 'game',
-          'urn:epic:member:platform_s': app.config.platform.short,
-          'urn:epic:member:joinrequest_j': '{"CrossplayPreference_i":"1"}',
+          'urn:epic:member:joinrequestusers_j': JSON.stringify({
+            users: [
+              {
+                id: app.launcher.account.id,
+                dn: app.launcher.account.displayName,
+                plat: app.config.platform.short,
+                data: JSON.stringify({
+                  CrossplayPreference: '1',
+                  SubGame_u: '1',
+                }),
+              },
+            ],
+          }),
         },
       },
     );

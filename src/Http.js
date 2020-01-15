@@ -71,7 +71,7 @@ class Http {
       this.request(options, (err, response, body) => {
 
         if (err) {
-
+          
           reject(err);
           return;
 
@@ -85,11 +85,13 @@ class Http {
               reject(new Error('You aren\'t logged in!'));
               break;
 
-            default:
+            default: {
               // eslint-disable-next-line no-console
               if (process.env.KYSUNE) console.dir(body);
-              reject(new Error(body.errorCode));
-              break;
+              const error = new Error(body.errorCode);
+              error.response = response;
+              reject(error);
+            } break;
 
           }
 

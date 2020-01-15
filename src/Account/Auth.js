@@ -13,76 +13,112 @@ class AccountAuth {
     
     this.launcher = launcher;
     this.tokenTimeout = null;
+    this.token = null;
     
   }
 
-  async auth(credentials) {
-    
+  analytics(strategyFlags) {
+    return this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/analytics`, null, null, true, {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-Epic-Strategy-Flags': strategyFlags || '',
+      Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+    });
+  }
+
+  async login(credentials, strategyFlags) {
+    await this.getXSRF(strategyFlags);
     try {
-
-      /**
-       * Geting XSRF TOKEN
-       */
-      const token = await this.getXSRF('login');
-
-      if (!token) throw new Error('[Account Authorization] Cannot get XSRF TOKEN!');
-
-      /**
-       * Sending login form
-       */
-      let { data } = await this.launcher.http.sendPost(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`, 'launcher', {
-        fromForm: 'yes',
-        authType: null,
-        linkExtAuth: null,
-        client_id: this.launcher.auth.clientId,
-        redirectUrl: `${ENDPOINT.LOGIN_FRONTEND}/login/showPleaseWait?client_id=${this.launcher.auth.clientId}&rememberEmail=false`,
-        epic_username: credentials.email,
+      await this.launcher.http.sendPost(`${ENDPOINT.LOGIN_FRONTEND}/api/login`, null, {
+        email: credentials.email,
         password: credentials.password,
-        rememberMe: 'NO',
+        rememberMe: false,
+        captcha: '',
       }, true, {
-        'X-XSRF-TOKEN': token,
+        'X-XSRF-TOKEN': this.token,
       });
-      
-      if (!data || !data.redirectURL) {
-        
-        const $ = Cheerio.load(data);
-        const errorCodesElement = $('.errorCodes');
+    } catch (error) {
+      if (error.response) {
+        switch (error.response.statusCode) {
+          case 409:
+            await this.login(credentials, strategyFlags);
+            break;
 
-        if (errorCodesElement.length) {
-
-          const errorMsg = errorCodesElement.text().trim();
-
-          throw new Error(`[Account Authorization] Login form error: ${errorMsg}`);
-        } else {
-
-          const twoFactorFormElement = $('#twoFactorForm');
-          if (twoFactorFormElement.length) {
-            data = await this.submitTwoFactorCode(token, twoFactorFormElement, credentials.twoFactorCode);
-          } else throw new Error('[Account Authorization] Cannot get "please wait" redirection URL!');
-
+          case 431: {
+            const method = error.response.body.metadata.twoFactorMethod;
+            const twoFactorCode = await this.getTwoFactorCode(method, credentials.twoFactorCode);
+            await this.sendTwoFactor(method, twoFactorCode, strategyFlags);
+          } break;
+          
+          default:
+            throw new Error(`Unknown auth error: ${error.message}`);
         }
-
       }
+    }
+  }
 
-      /**
-       * Reading exchange code from redirected "please wait" page
-       */
-      const exchangeCode = await this.getExchangeCode(data.redirectURL);
+  async sendTwoFactor(method, twoFactorCode, strategyFlags) {
+    await this.getXSRF(strategyFlags);
+    return this.launcher.http.sendPost(`${ENDPOINT.LOGIN_FRONTEND}/api/login/mfa`, null, {
+      code: twoFactorCode,
+      method,
+      rememberDevice: false,
+    }, true, {
+      'X-XSRF-TOKEN': this.token,
+    });
+  }
+
+  authenticate(strategyFlags) {
+    return this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/authenticate`, null, null, true, {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-Epic-Strategy-Flags': strategyFlags || '',
+      Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+    });
+  }
+
+  exchangeIdServiceCode(strategyFlags) {
+    return this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/exchange`, null, null, true, {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-Epic-Strategy-Flags': strategyFlags || '',
+      Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+    });
+  }
+
+  async auth(credentials) {
+    try {
+      this.launcher.debug.print('Initializing account authentication...');
+      await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/login`);
+      await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/reputation`, null, null, true, {
+        'X-Requested-With': 'XMLHttpRequest',
+        Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+      });
+      await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/location`, null, null, true, {
+        'X-Requested-With': 'XMLHttpRequest',
+        Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+      });
+      await this.authenticate();
+      await this.analytics();
+      
+      const strategyFlags = 'guardianEmailVerifyEnabled=false;guardianEmbeddedDocusignEnabled=true;registerEmailPreVerifyEnabled=false;unrealEngineGamingEula=true';
+      this.token = await this.getXSRF(strategyFlags);
+      
+      this.launcher.debug.print('Account logging...');
+      await this.login(credentials, strategyFlags);
+      
+      await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/redirect`, null, null, true, {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-Epic-Strategy-Flags': strategyFlags,
+        Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+      });
+
+      await this.authenticate(strategyFlags);
+      const { data: { code: exchangeCode } } = await this.exchangeIdServiceCode(strategyFlags);
 
       if (!exchangeCode) throw new Error('[Account Authorization] Cannot get exchange code!');
       
-      
-      /**
-       * Exchanging code on token "eg1"
-       */
+      this.launcher.debug.print('Exchanging code...');
       const authData = await this.exchangeCode(exchangeCode);
       
       if (!authData) throw new Error('[Account Authorization] Cannot exchange code and receive authData!');
-
-      
-      /**
-       * Ending auth process
-       */
 
       this.setAuthParams(authData);
       this.setTokenTimeout();
@@ -99,74 +135,97 @@ class AccountAuth {
   }
 
   async register(options) {
+    throw new Error('Auth.register() is outdated, will updated in future...');
+    // try {
 
-    try {
-
-      const token = await this.getXSRF('register');
+    //   const token = await this.getXSRF('register');
       
-      const { data } = await this.launcher.http.sendPost(
-        `${ENDPOINT.LOGIN_FRONTEND}/register/doLauncherRegister`,
-        'launcher',
-        {
-          fromForm: 'yes',
-          location: '/location',
-          authType: null,
-          client_id: this.launcher.auth.clientId,
-          redirectUrl: `${ENDPOINT.LOGIN_FRONTEND}/login/showPleaseWait?client_id=${this.launcher.auth.clientId}&rememberEmail=false`,
-          country: options.country,
-          name: options.firstName,
-          lastName: options.lastName,
-          displayName: options.displayName,
-          email: options.email,
-          password: options.password,
-          'g-recaptcha-response': options.recaptchaResponse,
-          termsAgree: 'yes',
-          register: 'sign in',
-        }, true, {
-          'X-XSRF-TOKEN': token,
-        },
-      );
+    //   const { data } = await this.launcher.http.sendPost(
+    //     `${ENDPOINT.LOGIN_FRONTEND}/register/doLauncherRegister`,
+    //     'launcher',
+    //     {
+    //       fromForm: 'yes',
+    //       location: '/location',
+    //       authType: null,
+    //       client_id: this.launcher.auth.clientId,
+    //       redirectUrl: `${ENDPOINT.LOGIN_FRONTEND}/login/showPleaseWait?client_id=${this.launcher.auth.clientId}&rememberEmail=false`,
+    //       country: options.country,
+    //       name: options.firstName,
+    //       lastName: options.lastName,
+    //       displayName: options.displayName,
+    //       email: options.email,
+    //       password: options.password,
+    //       'g-recaptcha-response': options.recaptchaResponse,
+    //       termsAgree: 'yes',
+    //       register: 'sign in',
+    //     }, true, {
+    //       'X-XSRF-TOKEN': token,
+    //     },
+    //   );
       
-      const $ = Cheerio.load(data);
-      const fieldValidationErrorElements = $('label.fieldValidationError');
-      let generalExceptionError = $('.errorCodes.generalExceptionError');
+    //   const $ = Cheerio.load(data);
+    //   const fieldValidationErrorElements = $('label.fieldValidationError');
+    //   let generalExceptionError = $('.errorCodes.generalExceptionError');
 
-      if (generalExceptionError.length) {
-        generalExceptionError = generalExceptionError.eq(0).text().trim();
-        throw new Error(`Error while registration. Message: ${generalExceptionError}`);
-      }
+    //   if (generalExceptionError.length) {
+    //     generalExceptionError = generalExceptionError.eq(0).text().trim();
+    //     throw new Error(`Error while registration. Message: ${generalExceptionError}`);
+    //   }
 
-      if (fieldValidationErrorElements.length) {
-        throw new Error(`Error while registration. Field: ${fieldValidationErrorElements.eq(0).attr('for')} Message: ${fieldValidationErrorElements.eq(0).text()}`);
-      }
+    //   if (fieldValidationErrorElements.length) {
+    //     throw new Error(`Error while registration. Field: ${fieldValidationErrorElements.eq(0).attr('for')} Message: ${fieldValidationErrorElements.eq(0).text()}`);
+    //   }
 
-      /**
-       * Reading exchange code from redirected "please wait" page
-       */
-      const exchangeCode = await this.getExchangeCode(data.redirectURL);
-      if (!exchangeCode) throw new Error('[Account Authorization] Cannot get exchange code!');
+    //   /**
+    //    * Reading exchange code from redirected "please wait" page
+    //    */
+    //   const exchangeCode = await this.getExchangeCode(data.redirectURL);
+    //   if (!exchangeCode) throw new Error('[Account Authorization] Cannot get exchange code!');
       
-      /**
-       * Exchanging code on token "eg1"
-       */
-      const authData = await this.exchangeCode(exchangeCode);
-      if (!authData) throw new Error('[Account Authorization] Cannot exchange code and receive authData!');
+    //   /**
+    //    * Exchanging code on token "eg1"
+    //    */
+    //   const authData = await this.exchangeCode(exchangeCode);
+    //   if (!authData) throw new Error('[Account Authorization] Cannot exchange code and receive authData!');
       
-      /**
-       * Ending auth process
-       */
-      this.setAuthParams(authData);
-      this.setTokenTimeout();
+    //   /**
+    //    * Ending auth process
+    //    */
+    //   this.setAuthParams(authData);
+    //   this.setTokenTimeout();
 
-      return true;
+    //   return true;
 
-    } catch (err) {
+    // } catch (err) {
         
-      this.launcher.debug.print(err);
+    //   this.launcher.debug.print(err);
+
+    // }
+
+    // return false;
+  }
+
+  async getTwoFactorCode(method, twoFactorCode) {
+    if (!twoFactorCode) {
+      return new Promise((resolve) => {
+        Prompt.question(`Enter two factor code (${method}): `, resolve);
+      });
+    }
+    switch (typeof twoFactorCode) {
+
+      case 'string':
+        return twoFactorCode;
+
+      case 'number':
+        return twoFactorCode;
+          
+      case 'function':
+        return twoFactorCode();
+
+      default:
+        throw new Error('`twoFactorCode` parameter must be `string`, `number` or `function`.');
 
     }
-
-    return false;
   }
 
   async submitTwoFactorCode(token, twoFactorFormElement, twoFactorCode) {
@@ -247,16 +306,20 @@ class AccountAuth {
     return JSON.parse(data);
   }
 
-  async getXSRF(location) {
-
-    const url = location === 'login' ? `${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin` : `${ENDPOINT.LOGIN_FRONTEND}/register/doLauncherRegister`;
-
-    await this.launcher.http.sendGet(
-      `${url}?client_id=${this.launcher.auth.clientId}`
-      + `&redirectUrl=https%3A%2F%2Faccounts.launcher-website-prod07.ol.epicgames.com%2Flogin%2FshowPleaseWait%3Fclient_id%3D${this.launcher.auth.clientId}%26rememberEmail%3Dfalse`,
-      'launcher',
-    );
-    return this.launcher.http.jar.getCookies(`${ENDPOINT.LOGIN_FRONTEND}/login/doLauncherLogin`).find(cookie => cookie.key === 'XSRF-TOKEN').value;
+  async getXSRF(strategyFlags) {
+    const headers = {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-Epic-Strategy-Flags': strategyFlags || '',
+      Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+    };
+    if (this.token) {
+      headers['X-XSRF-TOKEN'] = this.token;
+    }
+    await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/csrf`, null, null, true, headers);
+    if (!this.token) {
+      await this.analytics(strategyFlags);
+    }
+    this.token = this.launcher.http.jar.getCookies(`${ENDPOINT.LOGIN_FRONTEND}`).find(cookie => cookie.key === 'XSRF-TOKEN').value;
   }
 
   async getExchangeCode(url) {
@@ -364,6 +427,7 @@ class AccountAuth {
     this.lastPasswordValidation = data.lastPasswordValidation;
     this.app = data.app;
     this.inAppId = data.in_app_id;
+    this.deviceId = data.device_id;
 
   }
 

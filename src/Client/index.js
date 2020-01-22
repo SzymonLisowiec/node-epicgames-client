@@ -1119,13 +1119,13 @@ class Launcher extends Events {
     await this.http.sendGet(`https://accounts.epicgames.com/exchange?exchangeCode=${exchange.code}&redirectUrl=https%3A%2F%2Fepicgames.com%2Fsite%2Faccount`);
     await this.http.sendGet('https://www.epicgames.com/account/password');
     
-    let csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
-     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
-    csrfToken = csrfToken.value;
+    // let csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
+    //  || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
+    // csrfToken = csrfToken.value;
 
     let xsrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'XSRF-TOKEN')
      || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'XSRF-TOKEN');
-    xsrfToken = xsrfToken.value;
+    xsrfToken = xsrfToken ? xsrfToken.value : null;
 
     await this.http.sendPost(
       'https://www.epicgames.com/account/v2/refresh-csrf',
@@ -1158,7 +1158,7 @@ class Launcher extends Events {
       },
       true,
       {
-        'x-csrf-token': csrfToken,
+        'x-csrf-token': '[object Object]',
         'x-requested-with': 'XMLHttpRequest',
         'x-xsrf-token': xsrfToken,
       },
@@ -1185,9 +1185,9 @@ class Launcher extends Events {
 
     }
 
-    csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
-     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
-    csrfToken = csrfToken.value;
+    // csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
+    //  || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
+    // csrfToken = csrfToken.value;
 
     const { data } = await this.http.sendPost(
       'https://www.epicgames.com/account/v2/security/ajaxUpdateTwoFactorAuthSettings',
@@ -1200,7 +1200,7 @@ class Launcher extends Events {
       },
       true,
       {
-        'x-csrf-token': csrfToken,
+        'x-csrf-token': '[object Object]',
         'x-requested-with': 'XMLHttpRequest',
         'x-xsrf-token': xsrfToken,
       },
@@ -1223,13 +1223,13 @@ class Launcher extends Events {
     await this.http.sendGet(`https://accounts.epicgames.com/exchange?exchangeCode=${exchange.code}&redirectUrl=https%3A%2F%2Fepicgames.com%2Fsite%2Faccount`);
     await this.http.sendGet('https://www.epicgames.com/account/password');
     
-    let csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
-     || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
-    csrfToken = csrfToken.value;
+    // let csrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'csrfToken')
+    //  || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'csrfToken');
+    // csrfToken = csrfToken.value;
 
     let xsrfToken = this.http.jar.getCookies('https://www.epicgames.com').find(cookie => cookie.key === 'XSRF-TOKEN')
      || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'XSRF-TOKEN');
-    xsrfToken = xsrfToken.value;
+    xsrfToken = xsrfToken ? xsrfToken.value : null;
 
     await this.http.sendPost(
       'https://www.epicgames.com/account/v2/refresh-csrf',
@@ -1257,7 +1257,7 @@ class Launcher extends Events {
       },
       true,
       {
-        'x-csrf-token': csrfToken,
+        'x-csrf-token': '[object Object]',
         'x-requested-with': 'XMLHttpRequest',
         'x-xsrf-token': xsrfToken,
       },

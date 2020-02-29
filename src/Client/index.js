@@ -455,6 +455,45 @@ class Launcher extends Events {
 
     return false;
   }
+  
+  /**
+   * Returns evaluation of product code.
+   * @param {*} codeId 
+   * @param {*} locale 
+   */
+  async evaluateProductCode(codeId, locale="en-US") {
+    
+    try {
+      const query = 
+        `query evaluateCodeQuery($codeId: String, $locale: String) {
+            CodeRedemption {
+                evaluateCode(codeId: $codeId, locale: $locale) {
+                    success
+                    data {
+                        namespace
+                        offerId
+                        title
+                        description
+                        image
+                        eulaIds
+                        entitlementName
+                    }
+                }
+            }
+        }`;
+
+      const { data } = await this.http.sendGraphQL(null, query, { codeId, locale });
+
+      return JSON.parse(data);
+
+    } catch (err) {
+
+      this.debug.print(new Error(err));
+
+    }
+
+    return false;
+  }
 
   /**
    * Buy offer.

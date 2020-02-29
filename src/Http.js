@@ -1,4 +1,5 @@
 const Request = require('request');
+const ENDPOINT = require('../../resources/Endpoint');
 const EPIC_LAUNCHER_AUTHORIZATION = require('../resources/LauncherAuthorization');
 
 class Http {
@@ -116,6 +117,11 @@ class Http {
 
   sendPost(url, auth, data, isJsonResponse, headers) {
     return this.send('POST', url, auth, data, isJsonResponse, headers);
+  }
+
+  sendGraphQL(auth, query, variables, headers) {
+    const data = JSON.stringify(query);
+    return this.sendPost(ENDPOINT.GRAPHQL, auth, data, true, headers);
   }
 }
 

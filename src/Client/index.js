@@ -458,31 +458,63 @@ class Launcher extends Events {
   
   /**
    * Returns evaluation of product code.
-   * @param {*} codeId 
-   * @param {*} locale 
+   * @param {string} codeId 
+   * @param {string} locale 
    */
-  async evaluateProductCode(codeId, locale="en-US") {
+  async evaluateProductCode(codeId, locale='en-US') {
+    const query = 
+      `query evaluateCodeQuery($codeId: String, $locale: String) {
+          CodeRedemption {
+              evaluateCode(codeId: $codeId, locale: $locale) {
+                  success
+                  data {
+                      namespace
+                      offerId
+                      title
+                      description
+                      image
+                      eulaIds
+                      entitlementName
+                  }
+              }
+          }
+      }`;
     
     try {
-      const query = 
-        `query evaluateCodeQuery($codeId: String, $locale: String) {
-            CodeRedemption {
-                evaluateCode(codeId: $codeId, locale: $locale) {
-                    success
-                    data {
-                        namespace
-                        offerId
-                        title
-                        description
-                        image
-                        eulaIds
-                        entitlementName
-                    }
-                }
-            }
-        }`;
 
       const { data } = await this.http.sendGraphQL(null, query, { codeId, locale });
+
+      return JSON.parse(data);
+
+    } catch (err) {
+
+      this.debug.print(new Error(err));
+
+    }
+
+    return false;
+  }
+  
+  /**
+   * Returns redemption status of product code.
+   * @param {string} codeId 
+   * @param {string} source 
+   * @param {string} locale 
+   */
+  async redeemProductCode(codeId, source='DieselWebClient', locale='en-US') {
+
+    const mutation = 
+      ` mutation redeemCodeMutation($codeId: String, $source: String, $codeUseId: String) {
+        CodeRedemption {
+            redeemCode(codeId: $codeId, source: $source, codeUseId: $codeUseId) {
+                success
+              }
+          }
+      }`;
+    
+    try {
+
+      const { data } = await this.http.sendGraphQL(null, mutation, { codeId, source });
 
       return JSON.parse(data);
 

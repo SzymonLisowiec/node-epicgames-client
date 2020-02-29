@@ -2,6 +2,7 @@ const Events = require('events');
 const Cheerio = require('cheerio');
 const exitHook = require('exit-hook');
 
+const GRAPHQL = require('../../resources/GraphQL');
 const ENDPOINT = require('../../resources/Endpoint');
 
 const EPlatform = require('../../enums/Platform');
@@ -462,27 +463,10 @@ class Launcher extends Events {
    * @param {string} locale 
    */
   async evaluateProductCode(codeId, locale='en-US') {
-    const query = 
-      `query evaluateCodeQuery($codeId: String, $locale: String) {
-          CodeRedemption {
-              evaluateCode(codeId: $codeId, locale: $locale) {
-                  success
-                  data {
-                      namespace
-                      offerId
-                      title
-                      description
-                      image
-                      eulaIds
-                      entitlementName
-                  }
-              }
-          }
-      }`;
     
     try {
 
-      const { data } = await this.http.sendGraphQL(null, query, { codeId, locale });
+      const { data } = await this.http.sendGraphQL(null, GRAPHQL.EVALUATE_CODE_QUERY, { codeId, locale });
 
       return JSON.parse(data);
 
@@ -499,22 +483,12 @@ class Launcher extends Events {
    * Returns redemption status of product code.
    * @param {string} codeId 
    * @param {string} source 
-   * @param {string} locale 
    */
-  async redeemProductCode(codeId, source='DieselWebClient', locale='en-US') {
-
-    const mutation = 
-      ` mutation redeemCodeMutation($codeId: String, $source: String, $codeUseId: String) {
-        CodeRedemption {
-            redeemCode(codeId: $codeId, source: $source, codeUseId: $codeUseId) {
-                success
-              }
-          }
-      }`;
+  async redeemProductCode(codeId, source='DieselWebClient') {
     
     try {
 
-      const { data } = await this.http.sendGraphQL(null, mutation, { codeId, source });
+      const { data } = await this.http.sendGraphQL(null, GRAPHQL.REDEEM_CODE_MUTATION, { codeId, source });
 
       return JSON.parse(data);
 

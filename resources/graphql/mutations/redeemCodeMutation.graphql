@@ -1,0 +1,7 @@
+mutation redeemCodeMutation($codeId: String, $source: String, $codeUseId: String) {
+    CodeRedemption {
+        redeemCode(codeId: $codeId, source: $source, codeUseId: $codeUseId) {
+            success
+        }
+    }
+}

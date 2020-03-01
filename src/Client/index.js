@@ -2,6 +2,7 @@ const Events = require('events');
 const Cheerio = require('cheerio');
 const exitHook = require('exit-hook');
 
+const GRAPHQL = require('../../resources/GraphQL');
 const ENDPOINT = require('../../resources/Endpoint');
 
 const EPlatform = require('../../enums/Platform');
@@ -446,6 +447,50 @@ class Launcher extends Events {
       );
 
       return data;
+
+    } catch (err) {
+
+      this.debug.print(new Error(err));
+
+    }
+
+    return false;
+  }
+  
+  /**
+   * Returns evaluation of product code.
+   * @param {string} codeId 
+   * @param {string} locale 
+   */
+  async evaluateProductCode(codeId, locale='en-US') {
+    
+    try {
+
+      const { data } = await this.http.sendGraphQL(null, GRAPHQL.EVALUATE_CODE_QUERY, { codeId, locale });
+
+      return JSON.parse(data);
+
+    } catch (err) {
+
+      this.debug.print(new Error(err));
+
+    }
+
+    return false;
+  }
+  
+  /**
+   * Returns redemption status of product code.
+   * @param {string} codeId 
+   * @param {string} source 
+   */
+  async redeemProductCode(codeId, source='DieselWebClient') {
+    
+    try {
+
+      const { data } = await this.http.sendGraphQL(null, GRAPHQL.REDEEM_CODE_MUTATION, { codeId, source });
+
+      return JSON.parse(data);
 
     } catch (err) {
 

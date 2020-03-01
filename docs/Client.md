@@ -180,7 +180,7 @@ Lookups user.
 ```javascript
 {
   id: '91a0a53b14c6418183a9e61ccb7b04af',
-  accountName: 'Kysune',
+  name: 'Kysune',
   externalAuths: {},
 }
 ```

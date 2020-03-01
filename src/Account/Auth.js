@@ -1,6 +1,8 @@
 const Cheerio = require('cheerio');
 const Readline = require('readline');
 const ENDPOINT = require('../../resources/Endpoint');
+const FunCaptchaKeys = require('../../resources/FunCaptchaKeys');
+const FunCaptchaFingerPrint = require('./FunCaptchaFingerPrint');
 
 const Prompt = Readline.createInterface({
   input: process.stdin,
@@ -32,7 +34,7 @@ class AccountAuth {
         email: credentials.email,
         password: credentials.password,
         rememberMe: false,
-        captcha: '',
+        captcha: credentials.captcha || '',
       }, true, {
         'X-XSRF-TOKEN': this.token,
       });
@@ -83,20 +85,60 @@ class AccountAuth {
     });
   }
 
+  async getReputation() {
+    const { data } = await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/reputation`, null, null, true, {
+      'X-Requested-With': 'XMLHttpRequest',
+      Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+    });
+    return data;
+  }
+
+  async resolveCaptcha(reputation, credentials, action) {
+    if (!reputation || !reputation.verdict) return;
+    switch (reputation.verdict) {
+      case 'arkose': {
+        if (typeof credentials.captcha !== 'function') {
+          return;
+        }
+        const publicKey = FunCaptchaKeys[action];
+        if (!publicKey) {
+          throw new Error(`Not found FunCaptcha key for action ${action}`);
+        }
+        const { data: captchaData } = await this.launcher.http.sendPost(`${ENDPOINT.FUNCAPTCHA}/fc/gt2/public_key/${publicKey}`, null, {
+          bda: FunCaptchaFingerPrint(),
+          public_key: publicKey,
+          site: ENDPOINT.FUNCAPTCHA,
+          userbrowser: this.launcher.http.getUserAgent(),
+          simulate_rate_limit: 0,
+          simulated: 0,
+          language: 'en',
+          rnd: Math.random(),
+          'data[blob]': reputation.arkose_data.blob,
+        });
+        credentials.captcha = await credentials.captcha(reputation, captchaData, {
+          publicKey,
+          arkoseUrl: ENDPOINT.FUNCAPTCHA,
+          pageUrl: `${ENDPOINT.LOGIN_FRONTEND}/${action}`,
+          userAgent: this.launcher.http.getUserAgent(),
+        });
+      } break;
+      default:
+        this.launcher.debug.print(`Unknown reputation verdict: ${reputation.verdict}`);
+    }
+  }
+
   async auth(credentials) {
     try {
       this.launcher.debug.print('Initializing account authentication...');
       await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/login`);
-      await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/reputation`, null, null, true, {
-        'X-Requested-With': 'XMLHttpRequest',
-        Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
-      });
+      const reputation = await this.getReputation();
       await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/location`, null, null, true, {
         'X-Requested-With': 'XMLHttpRequest',
         Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
       });
       await this.authenticate();
       await this.analytics();
+      await this.resolveCaptcha(reputation, credentials, 'login');
       
       const strategyFlags = 'guardianEmailVerifyEnabled=false;guardianEmbeddedDocusignEnabled=true;registerEmailPreVerifyEnabled=false;unrealEngineGamingEula=true';
       this.token = await this.getXSRF(strategyFlags);
@@ -134,7 +176,7 @@ class AccountAuth {
     return false;
   }
 
-  async register(options) {
+  async register(/* options */) {
     throw new Error('Auth.register() is outdated, will updated in future...');
     // try {
 

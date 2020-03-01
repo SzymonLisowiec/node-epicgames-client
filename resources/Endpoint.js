@@ -33,6 +33,7 @@ module.exports = Object.freeze({
   ASSETS_VERSIONS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/{{platform}}',
 
   GRAPHQL: 'https://graphql.epicgames.com/graphql',
+  FUNCAPTCHA: 'https://epic-games-api.arkoselabs.com',
 
   // TODO:
   ACCOUNT_PAYMENTS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/payment/accounts/{{account_id}}/billingaccounts/default',

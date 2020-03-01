@@ -432,7 +432,7 @@ class Launcher extends Events {
    * @param {*} count 
    * @param {*} start 
    */
-  async getOffersForNamespace(namespace, count, start) {
+  async getOffersForNamespace(namespace, count, start, status) {
     
     try {
 
@@ -441,7 +441,7 @@ class Launcher extends Events {
       if (typeof start !== 'number') start = 0;
 
       const { data } = await this.http.sendGet(
-        `${ENDPOINT.CATALOG_OFFERS.replace('{{namespace}}', namespace)}?start=${start}&count=${count}`,
+        `${ENDPOINT.CATALOG_OFFERS.replace('{{namespace}}', namespace)}?start=${start}&count=${count}&status=${status}`,
         `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
       );
 

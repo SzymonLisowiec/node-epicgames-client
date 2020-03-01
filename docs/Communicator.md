@@ -74,41 +74,41 @@ Emitted while your friend send message to you.
 ### party:updated
 Emitted while leader change party state, it means change e.g. privacy, playlist.
 ```javascript
-app.on('party:updated', (party) => {
+app.communicator.on('party:updated', (party) => {
   console.log(`Party#${party.id} updated!`);
 });
 ```
 ### party:member:joined
 Emitted while someone has joined to the party.
 ```javascript
-app.on('party:member:joined', (member) => {
+app.communicator.on('party:member:joined', (member) => {
   console.log(`Member ${member.name} joined!`);
 });
 ```
 ### party:member:left
 Emitted while someone has left the party.
 ```javascript
-app.on('party:member:left', (member) => {
+app.communicator.on('party:member:left', (member) => {
   console.log(`Member ${member.name} left!`);
 });
 ```
 ### party:member:expired
 ```javascript
-app.on('party:member:expired', (member) => {
+app.communicator.on('party:member:expired', (member) => {
   console.log(`Member ${member.name} expired!`);
 });
 ```
 ### party:member:promoted
 Emitted while someone has been promoted to e.g. leader.
 ```javascript
-app.on('party:member:promoted', (member) => {
+app.communicator.on('party:member:promoted', (member) => {
   console.log(`Member ${member.name} has been promoted to ${member.role} role!`);
 });
 ```
 ### party:member:kicked
 Emitted while someone has been kicked from party.
 ```javascript
-app.on('party:member:kicked', (member) => {
+app.communicator.on('party:member:kicked', (member) => {
   console.log(`Member ${member.name} kicked!`);
 });
 ```
@@ -118,7 +118,7 @@ Emitted while party member change their state, it means change e.g. outfit, back
 ### party:member:confirmation
 Emitted while someone want join into your party. 
 ```javascript
-app.on('party:member:confirmation', (confirmation) => {
+app.communicator.on('party:member:confirmation', (confirmation) => {
   confirmation.confirm();
   // or
   confirmation.reject();
@@ -127,7 +127,7 @@ app.on('party:member:confirmation', (confirmation) => {
 ### party:invitation
 Emitted while your account receive party invitation.
 ```javascript
-app.on('party:invitation', (invitation) => {
+app.communicator.on('party:invitation', (invitation) => {
   invitation.accept();
   // or
   invitation.decline();

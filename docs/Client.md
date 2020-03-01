@@ -140,7 +140,19 @@ Instance of [request](https://github.com/request/request) contains user's cookie
     - **email** - defaultly [e-mail from instance options](#email)
     - **password** - defaultly [password from instance options](#password)
     - **twoFactorCode** - code from authenticatior while two factor authentication is enabled on your account
+    - **captcha** - function, see example below
 - **Returns:** `boolean`
+```javascript
+await client.login({
+  email: 'user@example.com',
+  password: 'str0ngp4ssw0rd',
+  captcha: async (reputation, captchaData, meta) => {
+    return thirdPartyResolver('funcaptcha', {
+      // ...
+    });
+  },
+});
+```
 
 ### register(options)
 - **Arguments**
@@ -180,7 +192,7 @@ Lookups user.
 ```javascript
 {
   id: '91a0a53b14c6418183a9e61ccb7b04af',
-  accountName: 'Kysune',
+  name: 'Kysune',
   externalAuths: {},
 }
 ```

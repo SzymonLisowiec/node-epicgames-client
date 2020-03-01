@@ -2,6 +2,7 @@ const Events = require('events');
 const Cheerio = require('cheerio');
 const exitHook = require('exit-hook');
 
+const GRAPHQL = require('../../resources/GraphQL');
 const ENDPOINT = require('../../resources/Endpoint');
 
 const EPlatform = require('../../enums/Platform');
@@ -219,12 +220,16 @@ class Launcher extends Events {
       email: this.config.email || '',
       password: this.config.password || '',
       twoFactorCode: false,
+      captcha: null,
     };
     
     switch (typeof options) { // backward compatibility
 
       case 'object':
-        credentials = options;
+        credentials = {
+          ...credentials,
+          ...options,
+        };
         break;
 
       case 'string':
@@ -432,7 +437,7 @@ class Launcher extends Events {
    * @param {*} count 
    * @param {*} start 
    */
-  async getOffersForNamespace(namespace, count, start) {
+  async getOffersForNamespace(namespace, count, start, status) {
     
     try {
 
@@ -441,11 +446,55 @@ class Launcher extends Events {
       if (typeof start !== 'number') start = 0;
 
       const { data } = await this.http.sendGet(
-        `${ENDPOINT.CATALOG_OFFERS.replace('{{namespace}}', namespace)}?start=${start}&count=${count}`,
+        `${ENDPOINT.CATALOG_OFFERS.replace('{{namespace}}', namespace)}?start=${start}&count=${count}&status=${status}`,
         `${this.account.auth.tokenType} ${this.account.auth.accessToken}`,
       );
 
       return data;
+
+    } catch (err) {
+
+      this.debug.print(new Error(err));
+
+    }
+
+    return false;
+  }
+  
+  /**
+   * Returns evaluation of product code.
+   * @param {string} codeId 
+   * @param {string} locale 
+   */
+  async evaluateProductCode(codeId, locale = 'en-US') {
+    
+    try {
+
+      const { data } = await this.http.sendGraphQL(null, GRAPHQL.EVALUATE_CODE_QUERY, { codeId, locale });
+
+      return JSON.parse(data);
+
+    } catch (err) {
+
+      this.debug.print(new Error(err));
+
+    }
+
+    return false;
+  }
+  
+  /**
+   * Returns redemption status of product code.
+   * @param {string} codeId 
+   * @param {string} source 
+   */
+  async redeemProductCode(codeId, source = 'DieselWebClient') {
+    
+    try {
+
+      const { data } = await this.http.sendGraphQL(null, GRAPHQL.REDEEM_CODE_MUTATION, { codeId, source });
+
+      return JSON.parse(data);
 
     } catch (err) {
 

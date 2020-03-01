@@ -462,7 +462,7 @@ class Launcher extends Events {
    * @param {string} codeId 
    * @param {string} locale 
    */
-  async evaluateProductCode(codeId, locale='en-US') {
+  async evaluateProductCode(codeId, locale = 'en-US') {
     
     try {
 
@@ -484,7 +484,7 @@ class Launcher extends Events {
    * @param {string} codeId 
    * @param {string} source 
    */
-  async redeemProductCode(codeId, source='DieselWebClient') {
+  async redeemProductCode(codeId, source = 'DieselWebClient') {
     
     try {
 

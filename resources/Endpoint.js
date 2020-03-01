@@ -32,6 +32,8 @@ module.exports = Object.freeze({
   LINKS_AUTHOR: 'https://links-public-service-live.ol.epicgames.com/links/api/{{namespace}}/author/{{accountId}}',
   ASSETS_VERSIONS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/{{platform}}',
 
+  GRAPHQL: 'https://graphql.epicgames.com/graphql',
+
   // TODO:
   ACCOUNT_PAYMENTS: 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/payment/accounts/{{account_id}}/billingaccounts/default',
   CATALOG: 'https://catalog-public-service-prod06.ol.epicgames.com/catalog/api/shared/namespace/{{namespace}}/items', // ?status=SUNSET%7CACTIVE&sortBy=creationDate&country=US&locale=pl-PL&start=0&count=1000

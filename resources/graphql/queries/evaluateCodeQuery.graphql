@@ -1,0 +1,16 @@
+query evaluateCodeQuery($codeId: String, $locale: String) {
+    CodeRedemption {
+        evaluateCode(codeId: $codeId, locale: $locale) {
+            success
+            data {
+                namespace
+                offerId
+                title
+                description
+                image
+                eulaIds
+                entitlementName
+            }
+        }
+    }
+}

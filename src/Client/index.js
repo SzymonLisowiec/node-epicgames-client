@@ -1,3 +1,5 @@
+const Fs = require('fs');
+const Path = require('path');
 const Events = require('events');
 const Cheerio = require('cheerio');
 const exitHook = require('exit-hook');
@@ -73,10 +75,12 @@ class Launcher extends Events {
         short: EPlatform.WIN,
         os: 'Windows/10.0.17134.1.768.64bit',
       },
-      build: '10.2.3-7092195+++Portal+Release-Live', // named "Build" in official launcher logs
-      engineBuild: '4.21.0-7092195+++Portal+Release-Live', // named "Engine Version" in official launcher logs
-      netCL: 7092195, // named "Net CL" in official launcher logs
+      build: '++Fortnite+Release-12.30-CL-12493283', // named "Build" in official launcher logs
+      engineBuild: '4.25.0-12493283+++Fortnite+Release-12.30', // named "Engine Version" in official launcher logs
+      netCL: 11937518, // named "Net CL" in official launcher logs
 
+      storage: Path.join(process.cwd(), '/.egstore'),
+      rememberLastSession: false,
       http: {},
 
       language: 'en-EN',
@@ -98,6 +102,10 @@ class Launcher extends Events {
       ...config,
 
     };
+
+    if (!Fs.existsSync(this.config.storage)) {
+      Fs.mkdirSync(this.config.storage);
+    }
 
     this.debug = new Debug({
       tool: this.config.debug,
@@ -214,7 +222,7 @@ class Launcher extends Events {
   /**
    * @param {(object|string|number|function|)=} options credentials or twoFactorCode, check wiki.
    */
-  async login(options) {
+  async login(options, exchangeCode=null) {
 
     let credentials = {
       email: this.config.email || '',
@@ -249,10 +257,10 @@ class Launcher extends Events {
           throw new Error('login() `options` must be object');
         }
         
-    } 
+    }
 
     this.account = new Account(this);
-    const auth = await this.account.authorize(credentials);
+    const auth = await this.account.authorize(credentials, exchangeCode);
 
     if (auth) {
 

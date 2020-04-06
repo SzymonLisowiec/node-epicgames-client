@@ -68,6 +68,16 @@ Copied from official launcher's logs. You can found it under name "Net CL". Defa
 - **Type:** `object`
 - **Default:** `{}`
 
+### store
+Directory's path to store `epicgames-client` cache.
+- **Type:** `string`
+- **Default:** `.egstore` catalog in your currently working directory (`${process.cwd()}/.egstore`).
+
+### rememberLastSession
+Set to true if you want to `epicgames-client` remember your last session.
+- **Type:** `boolean`
+- **Default:** `false`
+
 ### language
 Client's language.
 - **Type:** `string`
@@ -134,15 +144,17 @@ Instance of [request](https://github.com/request/request) contains user's cookie
 - **Arguments**
   - **language**  - string, e.g. `en`, `en-US`
 
-### login(options)
+### login(options[, exchangeCode])
 - **Arguments**
   - **options**
     - **email** - defaultly [e-mail from instance options](#email)
     - **password** - defaultly [password from instance options](#password)
     - **twoFactorCode** - code from authenticatior while two factor authentication is enabled on your account
     - **captcha** - function, see example below
+  - **exchangeCode** - If set, library will use provided `exchangeCode` to login instead account's credentials. You can get `exchangeCode` by login to your account in browser and going to url `https://www.epicgames.com/id/api/exchange`.
 - **Returns:** `boolean`
 ```javascript
+// With credentials:
 await client.login({
   email: 'user@example.com',
   password: 'str0ngp4ssw0rd',
@@ -152,6 +164,8 @@ await client.login({
     });
   },
 });
+// With exchangeCode:
+await client.login(null, 'd0eedb799584d850fdd802fd3c27ae34');
 ```
 
 ### register(options)

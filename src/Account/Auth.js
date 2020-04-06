@@ -33,7 +33,7 @@ class AccountAuth {
       await this.launcher.http.sendPost(`${ENDPOINT.LOGIN_FRONTEND}/api/login`, null, {
         email: credentials.email,
         password: credentials.password,
-        rememberMe: false,
+        rememberMe: this.launcher.config.rememberLastSession || false,
         captcha: credentials.captcha || '',
       }, true, {
         'X-XSRF-TOKEN': this.token,
@@ -122,6 +122,8 @@ class AccountAuth {
           userAgent: this.launcher.http.getUserAgent(),
         });
       } break;
+      case 'allow':
+        return;
       default:
         this.launcher.debug.print(`Unknown reputation verdict: ${reputation.verdict}`);
     }
@@ -130,50 +132,65 @@ class AccountAuth {
   async auth(credentials) {
     try {
       this.launcher.debug.print('Initializing account authentication...');
-      await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/login`);
-      const reputation = await this.getReputation();
-      await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/location`, null, null, true, {
-        'X-Requested-With': 'XMLHttpRequest',
-        Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
-      });
-      await this.authenticate();
-      await this.analytics();
-      await this.resolveCaptcha(reputation, credentials, 'login');
-      
       const strategyFlags = 'guardianEmailVerifyEnabled=false;guardianEmbeddedDocusignEnabled=true;registerEmailPreVerifyEnabled=false;unrealEngineGamingEula=true';
-      this.token = await this.getXSRF(strategyFlags);
+      let exchangeCode = null;
       
-      this.launcher.debug.print('Account logging...');
-      await this.login(credentials, strategyFlags);
-      
-      await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/redirect`, null, null, true, {
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-Epic-Strategy-Flags': strategyFlags,
-        Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
-      });
+      try {
+        if (!this.launcher.config.rememberLastSession) {
+          throw new Error('Remembering last session is disabled.');
+        }
+        const { data: exchangeCodeData } = await this.exchangeIdServiceCode(strategyFlags);
+        exchangeCode = exchangeCodeData.code;
+      } catch (error) {
+        await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/login`);
+        const reputation = await this.getReputation();
+        await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/location`, null, null, true, {
+          'X-Requested-With': 'XMLHttpRequest',
+          Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+        });
+        await this.authenticate();
+        await this.analytics();
+        await this.resolveCaptcha(reputation, credentials, 'login');
+        
+        this.token = await this.getXSRF(strategyFlags);
+        
+        this.launcher.debug.print('Account logging...');
+        await this.login(credentials, strategyFlags);
+        
+        await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/redirect`, null, null, true, {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-Epic-Strategy-Flags': strategyFlags,
+          Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
+        });
 
-      await this.authenticate(strategyFlags);
-      const { data: { code: exchangeCode } } = await this.exchangeIdServiceCode(strategyFlags);
+        await this.authenticate(strategyFlags);
+        const { data: exchangeCodeData } = await this.exchangeIdServiceCode(strategyFlags);
+        exchangeCode = exchangeCodeData.code;
+      }
 
       if (!exchangeCode) throw new Error('[Account Authorization] Cannot get exchange code!');
-      
+      return this.authWithExchangeCode(exchangeCode);
+    } catch (err) {
+      throw err;
+    }
+  }
+  
+  async authWithExchangeCode (exchangeCode) {
+    try {
       this.launcher.debug.print('Exchanging code...');
       const authData = await this.exchangeCode(exchangeCode);
       
       if (!authData) throw new Error('[Account Authorization] Cannot exchange code and receive authData!');
-
       this.setAuthParams(authData);
       this.setTokenTimeout();
+      
+      const { code: exchangeCodeForManageAccount } = await this.exchange();
+      await this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/exchange?exchangeCode=${exchangeCodeForManageAccount}&redirectUrl=https%3A%2F%2Fwww.epicgames.com%2Fsite%2Faccount`);
 
       return true;
-
     } catch (err) {
-      
-      this.launcher.debug.print(err);
-
+      throw err;
     }
-
-    return false;
   }
 
   async register(/* options */) {

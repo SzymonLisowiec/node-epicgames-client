@@ -46,11 +46,16 @@ class Account {
     return false;
   }
 
-  async authorize(credentials) {
+  async authorize(credentials, exchangeCode=null) {
 
     this.auth = new Auth(this.launcher);
-    const auth = await this.auth.auth(credentials);
-
+    let auth = null;
+    if (exchangeCode) {
+      auth = await this.auth.authWithExchangeCode(exchangeCode);
+    } else {
+      auth = await this.auth.auth(credentials);
+    }
+    
     if (!auth) return false;
 
     this.id = this.auth.accountId;

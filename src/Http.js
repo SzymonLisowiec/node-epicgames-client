@@ -1,4 +1,7 @@
+const Fs = require('fs');
+const Path = require('path');
 const Request = require('request');
+const FileCookieStore = require('tough-cookie-file-store');
 const ENDPOINT = require('../resources/Endpoint');
 const EPIC_LAUNCHER_AUTHORIZATION = require('../resources/LauncherAuthorization');
 
@@ -7,7 +10,12 @@ class Http {
   constructor(launcher) {
 
     this.launcher = launcher;
-    this.jar = Request.jar();
+    
+    const lastSessionCookiesFile = Path.join(this.launcher.config.storage, 'lastSessionCookies.json');
+    if (!this.launcher.config.rememberLastSession && Fs.existsSync(lastSessionCookiesFile)) {
+      Fs.unlinkSync(lastSessionCookiesFile);
+    }
+    this.jar = Request.jar(new FileCookieStore(lastSessionCookiesFile));
 
     this.options = {
 

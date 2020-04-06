@@ -1,6 +1,6 @@
 {
 	"name": "epicgames-client",
-	"version": "2.0.22",
+	"version": "2.0.23",
 	"description": "Unofficial EpicGames Launcher in javascript.",
 	"main": "index.js",
 	"keywords": [
@@ -33,6 +33,7 @@
 		"exit-hook": "^2.2.0",
 		"request": "^2.88.0",
 		"stanza.io": "^9.1.0",
+		"tough-cookie-file-store": "^1.2.0",
 		"uuid": "^3.3.2"
 	},
 	"devDependencies": {

@@ -1198,15 +1198,7 @@ class Launcher extends Events {
      || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'XSRF-AM-TOKEN');
     xsrfToken = xsrfToken.value;
 
-    const {
-      data: {
-        verify: {
-          otpauth,
-          secret,
-          challenge,
-        },
-      },
-    } = await this.http.sendPost(
+    const response = await this.http.sendPost(
       'https://www.epicgames.com/account/v2/security/ajaxUpdateTwoFactorAuthSettings',
       null,
       {
@@ -1220,6 +1212,20 @@ class Launcher extends Events {
         'x-xsrf-token': xsrfToken,
       },
     );
+    
+    if (response.response.statusCode !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    const {
+      data: {
+        verify: {
+          otpauth,
+          secret,
+          challenge,
+        },
+      },
+    } = response;
 
     let otp;
       

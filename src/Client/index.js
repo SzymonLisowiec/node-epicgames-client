@@ -449,7 +449,7 @@ class Launcher extends Events {
     try {
 
       const { data } = await this.http.sendGet(
-        ENDPOINT.CATALOG_PRODUCTS.replace('{{slug}}', slug).replace('{{locale}}', locale)
+        ENDPOINT.CATALOG_PRODUCTS.replace('{{slug}}', slug).replace('{{locale}}', locale),
       );
 
       return data;

@@ -660,6 +660,9 @@ class Launcher extends Events {
 
       case 'CHECKOUT': {
         const purchase = await this.newPurchase(offer);
+        if (!purchase || !purchase.token) {
+          throw new Error('Unable to acquire purchase token');
+        }
         const order = await this.purchaseOrderPreview(purchase, offer);
         if (!order) return false;
         return this.purchaseOrderConfirm(purchase, order);

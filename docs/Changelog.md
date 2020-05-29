@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.23
+- Added possibility to login with exchange code. Read more [HERE](https://epicgames-client.kysune.me/Client.html#login-options-exchangecode)
+- Added remembering last session. To enable it please set client's option `rememberLastSession` to `true` (defaults disabled). Please be careful to this option while you're using `epicgames-client` with multiple accounts in one script.
+- At the moment `epicgames-client` will creating a `.egstore` catalog to store his cache. If you want to change location of this directory or his name, read [HERE](https://epicgames-client.kysune.me/Client.html#store)
+- Updated default `build`, `engineBuild` and `netCL`.
+
+## 2.0.22
+- Added support for GraphQL queries. Thanks to [Revadike](https://github.com/Revadike) for [PR](https://github.com/SzymonLisowiec/node-epicgames-client/pull/77)
+- Added code redeption methods `evaluateProductCode()` and `redeemProductCode()`. Thanks to [Revadike](https://github.com/Revadike) for [PR](https://github.com/SzymonLisowiec/node-epicgames-client/pull/77)
+- Added `status` argument to `getOffersForNamespace()` method.
+- Implemented support for resolving captcha while login. Look example here: https://epicgames-client.kysune.me/Client.html#login-options
+
 ## 2.0.17
 - Improved [`Party`](/Party.html) and [`PartyMember`](/PartyMember.html) obejcts.
 

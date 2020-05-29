@@ -221,6 +221,13 @@ Searchs entitlement in your entitlements.
 Fetchs your account's entitlements.
 - **Returns:** `array` of entitlements or `false`
 
+### getOffersForSlug(slug, locale)
+Fetchs all offers for given namespace.
+- **Arguments**
+  - **slug** - string, e.g. `grand-theft-auto-v` for GTA V
+  - **locale** - string, e.g. `en-US` (default)
+- **Returns:** `array` of offers or `false`
+
 ### getOffersForNamespace(namespace, count, start)
 Fetchs all offers for given namespace.
 - **Arguments**

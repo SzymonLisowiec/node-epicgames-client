@@ -441,6 +441,30 @@ class Launcher extends Events {
   
   /**
    * Returns offers for game.
+   * @param {*} slug 
+   * @param {*} locale 
+   */
+  async getOffersForSlug(slug, locale = 'en-US') {
+    
+    try {
+
+      const { data } = await this.http.sendGet(
+        ENDPOINT.CATALOG_PRODUCTS.replace('{{slug}}', slug).replace('{{locale}}', locale),
+      );
+
+      return data;
+
+    } catch (err) {
+
+      this.debug.print(new Error(err));
+
+    }
+
+    return false;
+  }
+  
+  /**
+   * Returns offers for game.
    * @param {*} namespace epicgame's namespace
    * @param {*} count 
    * @param {*} start 
@@ -636,6 +660,9 @@ class Launcher extends Events {
 
       case 'CHECKOUT': {
         const purchase = await this.newPurchase(offer);
+        if (!purchase || !purchase.token) {
+          throw new Error('Unable to acquire purchase token');
+        }
         const order = await this.purchaseOrderPreview(purchase, offer);
         if (!order) return false;
         return this.purchaseOrderConfirm(purchase, order);
@@ -1198,15 +1225,7 @@ class Launcher extends Events {
      || this.http.jar.getCookies('https://epicgames.com').find(cookie => cookie.key === 'XSRF-AM-TOKEN');
     xsrfToken = xsrfToken.value;
 
-    const {
-      data: {
-        verify: {
-          otpauth,
-          secret,
-          challenge,
-        },
-      },
-    } = await this.http.sendPost(
+    const response = await this.http.sendPost(
       'https://www.epicgames.com/account/v2/security/ajaxUpdateTwoFactorAuthSettings',
       null,
       {
@@ -1220,6 +1239,20 @@ class Launcher extends Events {
         'x-xsrf-token': xsrfToken,
       },
     );
+    
+    if (response.response.statusCode !== 200) {
+      throw new Error(response.data.message);
+    }
+
+    const {
+      data: {
+        verify: {
+          otpauth,
+          secret,
+          challenge,
+        },
+      },
+    } = response;
 
     let otp;
       

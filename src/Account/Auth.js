@@ -77,10 +77,14 @@ class AccountAuth {
     });
   }
 
-  exchangeIdServiceCode(strategyFlags) {
-    return this.launcher.http.sendGet(`${ENDPOINT.LOGIN_FRONTEND}/api/exchange`, null, null, true, {
+  async exchangeIdServiceCode(strategyFlags) {
+    await this.getXSRF(strategyFlags);
+    return this.launcher.http.sendPost(`${ENDPOINT.LOGIN_FRONTEND}/api/exchange/generate`, null, null, true, {
       'X-Requested-With': 'XMLHttpRequest',
       'X-Epic-Strategy-Flags': strategyFlags || '',
+      'X-Epic-Event-Action': 'login',
+      'X-Epic-Event-Category': 'login',
+      'X-XSRF-TOKEN': this.token,
       Referer: `${ENDPOINT.LOGIN_FRONTEND}/login`,
     });
   }
